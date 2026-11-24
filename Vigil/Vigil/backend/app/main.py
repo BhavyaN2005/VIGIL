@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.config import settings
+from app.config import settings, REPO_ROOT
 from app.core.database import init_db
 from app.core.model_registry import registry
 from app.routers import alerts, health, metrics, predict, stream, forecast, topology

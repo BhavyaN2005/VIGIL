@@ -12,7 +12,6 @@
         rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
-    <script src="/static/js/liquid-glass-engine.js"></script>
     <style>
         :root {
             /* Strict Swiss-Monochrome Color Tokens */
@@ -89,44 +88,6 @@
             z-index: 2;
         }
 
-        /* VIGIL Prism Capsule (Central Convex Liquid Glass Optical Lens) */
-        .liquid-glass-lens {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: clamp(340px, 46vw, 560px);
-            height: clamp(170px, 24vh, 270px);
-            border-radius: 9999px;
-            z-index: 50;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            user-select: none;
-            cursor: grab;
-            transition: opacity 0.35s ease, border-color 0.35s ease;
-            pointer-events: auto;
-        }
-
-        .liquid-glass-lens.hidden {
-            display: none !important;
-        }
-
-        .lens-badge {
-            font-family: var(--font-mono);
-            font-size: 0.65rem;
-            color: var(--white);
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            padding: 0.4rem 1.05rem;
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            border-radius: 999px;
-            backdrop-filter: blur(12px);
-            pointer-events: none;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
-        }
-
         /* Unified Top Navigation Prism Capsule */
         .navbar {
             position: fixed;
@@ -158,8 +119,8 @@
             padding: 0.35rem 0.65rem 0.35rem 0.85rem;
             border-radius: 9999px;
             background: rgba(10, 10, 14, 0.82);
-            backdrop-filter: url(#liquid-convex-lens-nav) blur(20px) saturate(120%);
-            -webkit-backdrop-filter: url(#liquid-convex-lens-nav) blur(20px) saturate(120%);
+            backdrop-filter: blur(20px) saturate(120%);
+            -webkit-backdrop-filter: blur(20px) saturate(120%);
             border: 1px solid rgba(255, 255, 255, 0.12);
             box-shadow:
                 0 20px 50px -10px rgba(0, 0, 0, 0.9),
@@ -308,39 +269,6 @@
         .nav-actions {
             display: flex;
             align-items: center;
-        }
-
-        .prism-capsule-btn {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.55rem;
-            border-radius: 9999px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-            color: var(--white);
-            font-family: var(--font-mono);
-            font-size: 0.68rem;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            padding: 0.38rem 0.85rem;
-            cursor: pointer;
-            transition: all 0.22s ease;
-            user-select: none;
-            outline: none;
-            white-space: nowrap;
-        }
-
-        .prism-capsule-btn:hover {
-            background: rgba(255, 255, 255, 0.14);
-            border-color: rgba(255, 255, 255, 0.35);
-            color: var(--white);
-        }
-
-        .prism-capsule-btn.inactive {
-            opacity: 0.5;
-            border-color: rgba(255, 255, 255, 0.1);
         }
 
         .capsule-pulse-dot {
@@ -580,8 +508,8 @@
             border-radius: 28px;
             padding: 2.1rem 1.95rem;
             background: rgba(8, 9, 14, 0.40);
-            backdrop-filter: url(#liquid-convex-cards) blur(0.5px) saturate(120%);
-            -webkit-backdrop-filter: url(#liquid-convex-cards) blur(0.5px) saturate(120%);
+            backdrop-filter: blur(18px) saturate(125%);
+            -webkit-backdrop-filter: blur(18px) saturate(125%);
             border: 1px solid rgba(255, 255, 255, 0.18);
             box-shadow:
                 0 24px 60px -12px rgba(0, 0, 0, 0.85),
@@ -725,8 +653,8 @@
         .vigil-card {
             background: rgba(8, 9, 14, 0.42);
             border: 1px solid rgba(255, 255, 255, 0.16);
-            backdrop-filter: url(#liquid-convex-cards) blur(0.5px) saturate(120%);
-            -webkit-backdrop-filter: url(#liquid-convex-cards) blur(0.5px) saturate(120%);
+            backdrop-filter: blur(18px) saturate(125%);
+            -webkit-backdrop-filter: blur(18px) saturate(125%);
             border-radius: 24px;
             padding: 1.65rem;
             position: relative;
@@ -1185,12 +1113,6 @@
     <!-- Subtle Ambient Vignette Overlay -->
     <div class="vignette-overlay"></div>
 
-    <!-- VIGIL Prism Capsule -->
-    <div class="liquid-glass-lens" id="hero-lens" data-name="Prism Capsule"
-        title="VIGIL Prism Capsule &middot; Drag across 3D scene">
-        <div class="lens-badge">PRISM CAPSULE &bull; OPTICAL LENS</div>
-    </div>
-
     <!-- Unified Floating Top Nav Prism Capsule -->
     <header class="navbar" id="main-navbar">
         <nav class="nav-prism-capsule" id="nav-prism-capsule">
@@ -1214,15 +1136,6 @@
                 <li><a href="#section-topology" class="nav-link" data-section="section-topology">Topology</a></li>
                 <li><a href="/dashboard" class="nav-link">Console &rarr;</a></li>
             </ul>
-
-            <div class="nav-divider"></div>
-
-            <div class="nav-actions">
-                <button class="prism-capsule-btn active" id="btn-toggle-lens" title="Toggle Prism Capsule (Key L)">
-                    <span class="capsule-pulse-dot"></span>
-                    <span id="lens-btn-label">CAPSULE: ON</span>
-                </button>
-            </div>
         </nav>
     </header>
 
@@ -2329,38 +2242,6 @@
         }
 
         // ==========================================
-        // Prism Capsule Toggle Controller (Button & Key 'L')
-        // ==========================================
-        function initLensControls() {
-            const lens = document.getElementById('hero-lens');
-            const lensBtn = document.getElementById('btn-toggle-lens');
-            const label = document.getElementById('lens-btn-label');
-
-            function toggleLens() {
-                if (!lens) return;
-                const isHidden = lens.classList.toggle('hidden');
-                if (label) {
-                    label.textContent = isHidden ? 'CAPSULE: OFF' : 'CAPSULE: ON';
-                }
-                if (lensBtn) {
-                    lensBtn.classList.toggle('active', !isHidden);
-                    lensBtn.classList.toggle('inactive', isHidden);
-                }
-            }
-
-            if (lensBtn) {
-                lensBtn.addEventListener('click', toggleLens);
-            }
-
-            window.addEventListener('keydown', (e) => {
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-                if (e.key === 'l' || e.key === 'L') {
-                    toggleLens();
-                }
-            });
-        }
-
-        // ==========================================
         // Zen Mode Toggle (Double-Click Canvas or Key 'H' / 'Z')
         // ==========================================
         function initZenMode() {
@@ -2778,7 +2659,6 @@
             initMono3D();
             initNavGlassSlider();
             initScrollParallax();
-            initLensControls();
             initZenMode();
 
             loadLiveAlerts();
@@ -2802,49 +2682,6 @@
             window.addEventListener('resize', () => {
                 if (homeTopologyData) renderHomeTopologyCanvas();
             });
-
-            // Initialize Liquid Glass Convex Capsule Engine
-            if (window.LiquidGlassEngine) {
-                window.prismCapsuleInstance = new LiquidGlassEngine({
-                    target: '.liquid-glass-lens',
-                    filterId: 'liquid-convex-lens',
-                    shape: 'capsule',
-                    displacementScale: 0.16,
-                    bevelRatio: 0.55,
-                    blur: 1.0,
-                    brightness: 1.0,
-                    saturate: 100,
-                    draggable: true,
-                    interactiveTilt: true
-                });
-
-                window.navCapsuleInstance = new LiquidGlassEngine({
-                    target: '.nav-prism-capsule',
-                    filterId: 'liquid-convex-lens-nav',
-                    shape: 'capsule',
-                    displacementScale: 0.08,
-                    bevelRatio: 0.35,
-                    blur: 0,
-                    brightness: 1.0,
-                    saturate: 100,
-                    draggable: false,
-                    interactiveTilt: false
-                });
-
-                window.cardsCapsuleInstance = new LiquidGlassEngine({
-                    target: '.prism-capsule-card',
-                    filterId: 'liquid-convex-cards',
-                    shape: 'box',
-                    cornerRadius: 28,
-                    bevelWidth: 34,
-                    displacementScale: 0.14,
-                    blur: 0.5,
-                    brightness: 1.05,
-                    saturate: 120,
-                    draggable: false,
-                    interactiveTilt: true
-                });
-            }
         });
     </script>
 </body>

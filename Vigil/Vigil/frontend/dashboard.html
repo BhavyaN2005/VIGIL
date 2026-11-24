@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VIGIL — Network Threat Operations & Forecasting Console</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
     <style>
@@ -300,8 +303,8 @@
             z-index: 10;
             opacity: 0;
             transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                        width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                        opacity 0.2s ease;
+                width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.2s ease;
             transform: translate3d(0, 0, 0);
         }
 
@@ -370,8 +373,17 @@
         }
 
         @keyframes pulse-dot-anim {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.35; transform: scale(0.8); }
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.35;
+                transform: scale(0.8);
+            }
         }
 
         .dash-uptime {
@@ -413,7 +425,7 @@
             padding-bottom: 5rem;
         }
 
-        .page-content > * {
+        .page-content>* {
             pointer-events: auto;
         }
 
@@ -566,8 +578,15 @@
         }
 
         @keyframes float-scroll {
-            0%, 100% { transform: translateX(-50%) translateY(0); }
-            50% { transform: translateX(-50%) translateY(8px); }
+
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            50% {
+                transform: translateX(-50%) translateY(8px);
+            }
         }
 
         /* ===== CONTENT SECTIONS (GENEROUS SCROLL MARGIN FOR NAVBAR CLEARANCE) ===== */
@@ -576,7 +595,8 @@
             max-width: 1320px;
             margin: 0 auto;
             position: relative;
-            scroll-margin-top: 6.5rem; /* Guarantees section eyebrow is completely visible below floating navbar */
+            scroll-margin-top: 6.5rem;
+            /* Guarantees section eyebrow is completely visible below floating navbar */
         }
 
         .section-eyebrow {
@@ -645,10 +665,9 @@
             height: 45%;
             border-radius: 24px 24px 90px 90px / 24px 24px 30px 30px;
             background: linear-gradient(180deg,
-                rgba(255, 255, 255, 0.10) 0%,
-                rgba(255, 255, 255, 0.02) 60%,
-                transparent 100%
-            );
+                    rgba(255, 255, 255, 0.10) 0%,
+                    rgba(255, 255, 255, 0.02) 60%,
+                    transparent 100%);
             pointer-events: none;
             z-index: 1;
         }
@@ -717,11 +736,15 @@
         }
 
         @media (max-width: 1024px) {
-            .kpi-mini-strip { grid-template-columns: repeat(2, 1fr); }
+            .kpi-mini-strip {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         @media (max-width: 640px) {
-            .kpi-mini-strip { grid-template-columns: 1fr; }
+            .kpi-mini-strip {
+                grid-template-columns: 1fr;
+            }
         }
 
         .kpi-mini {
@@ -818,9 +841,17 @@
         }
 
         @media (max-width: 1024px) {
-            .cards-grid-2 { grid-template-columns: 1fr; }
-            .cards-grid-3-1 { grid-template-columns: 1fr; }
-            .cards-grid-topo { grid-template-columns: 1fr; }
+            .cards-grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .cards-grid-3-1 {
+                grid-template-columns: 1fr;
+            }
+
+            .cards-grid-topo {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* ===== TABLES ===== */
@@ -976,8 +1007,15 @@
         }
 
         @keyframes zeroday-pulse {
-            0%, 100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.35); }
-            50% { box-shadow: 0 0 18px rgba(239, 68, 68, 0.7); }
+
+            0%,
+            100% {
+                box-shadow: 0 0 8px rgba(239, 68, 68, 0.35);
+            }
+
+            50% {
+                box-shadow: 0 0 18px rgba(239, 68, 68, 0.7);
+            }
         }
 
         .badge-isolated {
@@ -987,7 +1025,10 @@
         }
 
         /* ===== BUTTONS & CONTROLS ===== */
-        .btn-control, .btn-action, .btn-quarantine, .btn-inject {
+        .btn-control,
+        .btn-action,
+        .btn-quarantine,
+        .btn-inject {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -1007,7 +1048,9 @@
             text-decoration: none;
         }
 
-        .btn-control:hover, .btn-action:hover, .btn-inject:hover {
+        .btn-control:hover,
+        .btn-action:hover,
+        .btn-inject:hover {
             background: #FFFFFF;
             color: #000000;
             border-color: #FFFFFF;
@@ -1075,10 +1118,12 @@
         }
 
         @supports (appearance: base-select) {
+
             .dash-select,
             .dash-select::picker(select) {
                 appearance: base-select;
             }
+
             .dash-select::picker(select) {
                 background-color: #0C0E14;
                 border: 1px solid rgba(255, 255, 255, 0.18);
@@ -1087,9 +1132,11 @@
                 box-shadow: 0 12px 30px rgba(0, 0, 0, 0.85);
                 padding: 0.4rem;
             }
+
             .dash-select::picker-icon {
                 color: #A1A1AA;
             }
+
             .dash-select option::checkmark {
                 color: #FFFFFF;
             }
@@ -1207,12 +1254,13 @@
         }
 
         @keyframes alert-flash {
-            0% { 
-                background: rgba(239, 68, 68, 0.32); 
+            0% {
+                background: rgba(239, 68, 68, 0.32);
                 box-shadow: inset 0 0 16px rgba(239, 68, 68, 0.25);
             }
-            100% { 
-                background: transparent; 
+
+            100% {
+                background: transparent;
                 box-shadow: none;
             }
         }
@@ -1250,7 +1298,9 @@
         }
 
         @media (max-width: 900px) {
-            .kill-chain-track { grid-template-columns: repeat(3, 1fr); }
+            .kill-chain-track {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
 
         .kill-chain-step {
@@ -1371,6 +1421,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <!-- Full-Screen Persistent 3D Background Canvas -->
@@ -1411,8 +1462,11 @@
             <div class="dash-nav-divider"></div>
 
             <div class="dash-nav-right">
-                <button class="dash-home-btn" id="btn-backend-config" onclick="configureBackendUrl()" title="Configure Render Backend Endpoint" style="display:inline-flex;align-items:center;gap:0.35rem;">
-                    <span id="backend-status-dot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#10B981;"></span>
+                <button class="dash-home-btn" id="btn-backend-config" onclick="configureBackendUrl()"
+                    title="Configure Render Backend Endpoint"
+                    style="display:inline-flex;align-items:center;gap:0.35rem;">
+                    <span id="backend-status-dot"
+                        style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#10B981;"></span>
                     <span id="backend-status-text">Backend</span>
                 </button>
                 <a href="/#section-overview" class="dash-home-btn">Overview</a>
@@ -1433,16 +1487,19 @@
                     <span>AUTONOMOUS CYBER DEFENSE &bull; ZERO-DAY RESILIENT &bull; LINE-RATE TRIAGE</span>
                 </div>
                 <h1 class="hero-title">VIGIL</h1>
-                <p class="hero-subtitle">Threat Operations &amp; Predictive Forecasting Console &mdash; Deciphering Adversary Tradecraft at Wire Speed.</p>
+                <p class="hero-subtitle">Threat Operations &amp; Predictive Forecasting Console &mdash; Deciphering
+                    Adversary Tradecraft at Wire Speed.</p>
                 <div class="hero-ctas">
-                    <button class="btn-primary" onclick="scrollToTarget('section-forecast')">Enter Operations &darr;</button>
-                    <button class="btn-ghost" onclick="scrollToTarget('section-threats-stream')">Live Stream Feed &rarr;</button>
+                    <button class="btn-primary" onclick="scrollToTarget('section-forecast')">Enter Operations
+                        &darr;</button>
+                    <button class="btn-ghost" onclick="scrollToTarget('section-threats-stream')">Live Stream Feed
+                        &rarr;</button>
                 </div>
             </div>
             <div class="scroll-indicator">
                 <svg width="16" height="24" viewBox="0 0 16 24" fill="none">
-                    <rect x="6" y="1" width="4" height="8" rx="2" fill="white" opacity="0.6"/>
-                    <path d="M8 15L4 19H12L8 15Z" fill="white" opacity="0.6"/>
+                    <rect x="6" y="1" width="4" height="8" rx="2" fill="white" opacity="0.6" />
+                    <path d="M8 15L4 19H12L8 15Z" fill="white" opacity="0.6" />
                 </svg>
                 <span>Scroll to explore console</span>
             </div>
@@ -1456,7 +1513,8 @@
         <section id="section-forecast" class="content-section">
             <div class="section-eyebrow">&sect; 01 &mdash; Predictive Intelligence</div>
             <h2 class="section-title">Threat Forecasting &amp; Multi-Horizon Modeling</h2>
-            <p class="section-desc">Temporal Fusion Transformer (TFT) multi-horizon projections predicting attack vectors, confidence bounds, and crown-jewel exposure before incursion.</p>
+            <p class="section-desc">Temporal Fusion Transformer (TFT) multi-horizon projections predicting attack
+                vectors, confidence bounds, and crown-jewel exposure before incursion.</p>
 
             <!-- Multi-Horizon KPI Mini-Strip -->
             <div class="kpi-mini-strip">
@@ -1570,11 +1628,13 @@
                         </div>
                         <div class="vigil-card-tag">SHAP Attribution</div>
                     </div>
-                    <div style="font-family:var(--font-mono); font-size:0.8rem; line-height:1.6; color:var(--zinc-200); background:rgba(5,7,11,0.7); padding:1rem; border-radius:12px; border:1px solid var(--border-hairline);" id="forecast-shap-explanation">
+                    <div style="font-family:var(--font-mono); font-size:0.8rem; line-height:1.6; color:var(--zinc-200); background:rgba(5,7,11,0.7); padding:1rem; border-radius:12px; border:1px solid var(--border-hairline);"
+                        id="forecast-shap-explanation">
                         Loading model feature attribution...
                     </div>
                     <div style="margin-top:1.2rem;">
-                        <div style="font-size:0.72rem; font-family:var(--font-mono); color:var(--zinc-400); text-transform:uppercase; margin-bottom:0.5rem;">
+                        <div
+                            style="font-size:0.72rem; font-family:var(--font-mono); color:var(--zinc-400); text-transform:uppercase; margin-bottom:0.5rem;">
                             Forecast Simulation Sandbox:
                         </div>
                         <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
@@ -1584,7 +1644,8 @@
                                 <option value="Lateral Movement">Simulate Lateral Pivot</option>
                                 <option value="Data Exfiltration">Simulate Exfiltration Spike</option>
                             </select>
-                            <button class="btn-inject" onclick="runForecastSimulation()">Run Forecast Simulation</button>
+                            <button class="btn-inject" onclick="runForecastSimulation()">Run Forecast
+                                Simulation</button>
                         </div>
                     </div>
                 </div>
@@ -1612,7 +1673,8 @@
         <section id="section-threats-stream" class="content-section">
             <div class="section-eyebrow">&sect; 02 &mdash; Real-Time Triage</div>
             <h2 class="section-title">Live Threat Detection Stream</h2>
-            <p class="section-desc">High-throughput line-rate packet classifier streaming live network flows with concurrent SHAP explainability and zero-day isolation.</p>
+            <p class="section-desc">High-throughput line-rate packet classifier streaming live network flows with
+                concurrent SHAP explainability and zero-day isolation.</p>
 
             <!-- Stream KPI Mini-Strip -->
             <div class="kpi-mini-strip">
@@ -1645,7 +1707,8 @@
                         <span>[STREAM]</span> Real-Time Packet Stream &amp; Flow Classifier
                     </div>
                     <div style="display:flex; gap:0.6rem; align-items:center;">
-                        <button class="btn-control" id="btn-toggle-stream" onclick="toggleStream()">Pause Stream</button>
+                        <button class="btn-control" id="btn-toggle-stream" onclick="toggleStream()">Pause
+                            Stream</button>
                         <select id="model-select" onchange="changeModel(this.value)" class="dash-select">
                             <option value="xgb">Model: XGBoost (Primary)</option>
                             <option value="rf">Model: Random Forest</option>
@@ -1659,7 +1722,8 @@
                     <span class="home-inject-label">SIMULATE ATTACK INJECTION:</span>
                     <button class="btn-inject" onclick="injectAttack('DDoS')">[DDOS] Inject DDoS</button>
                     <button class="btn-inject" onclick="injectAttack('PortScan')">[PORTSCAN] Inject Scan</button>
-                    <button class="btn-inject" onclick="injectAttack('Brute Force')">[BRUTE_FORCE] Inject Brute Force</button>
+                    <button class="btn-inject" onclick="injectAttack('Brute Force')">[BRUTE_FORCE] Inject Brute
+                        Force</button>
                     <button class="btn-inject" onclick="injectAttack('DoS')">[DOS] Inject DoS</button>
                     <button class="btn-inject" onclick="injectAttack('Web Attack')">[WEB_ATTACK] Inject SQLi</button>
                     <button class="btn-inject" onclick="injectAttack('Bot')">[BOTNET] Inject Botnet</button>
@@ -1686,7 +1750,8 @@
                     </table>
                 </div>
                 <div class="scroll-affordance-footer">
-                    <span><span class="scroll-affordance-dot"></span> Real-time wire-speed stream &bull; Scroll to inspect historical flows</span>
+                    <span><span class="scroll-affordance-dot"></span> Real-time wire-speed stream &bull; Scroll to
+                        inspect historical flows</span>
                     <span class="scroll-affordance-arrow">&darr; More Telemetry</span>
                 </div>
             </div>
@@ -1715,11 +1780,13 @@
                             </div>
                             <div class="vigil-card-tag" id="shap-target-class">Target: --</div>
                         </div>
-                        <div style="font-size:0.72rem; color:var(--zinc-400); font-family:var(--font-mono); margin-bottom:0.85rem;">
+                        <div
+                            style="font-size:0.72rem; color:var(--zinc-400); font-family:var(--font-mono); margin-bottom:0.85rem;">
                             Feature value deviations driving model classification for the latest alert:
                         </div>
                         <div class="shap-container" id="shap-waterfall">
-                            <div style="color:var(--zinc-500); font-size:0.75rem; font-family:var(--font-mono); text-align:center; padding:1.5rem 0;">
+                            <div
+                                style="color:var(--zinc-500); font-size:0.75rem; font-family:var(--font-mono); text-align:center; padding:1.5rem 0;">
                                 Awaiting network threat detection...
                             </div>
                         </div>
@@ -1753,7 +1820,8 @@
         <section id="section-killchain" class="content-section">
             <div class="section-eyebrow">&sect; 03 &mdash; Adversary Mapping</div>
             <h2 class="section-title">MITRE ATT&amp;CK &amp; Cyber Kill Chain Tracker</h2>
-            <p class="section-desc">Multi-stage kill chain progression tracker mapping adversary tactics, transition probabilities, and estimated time-to-impact (TTI).</p>
+            <p class="section-desc">Multi-stage kill chain progression tracker mapping adversary tactics, transition
+                probabilities, and estimated time-to-impact (TTI).</p>
 
             <!-- 7-Stage Cyber Kill Chain Visual Banner -->
             <div class="vigil-card">
@@ -1763,19 +1831,22 @@
                     </div>
                     <div class="vigil-card-tag" id="kill-chain-status-badge">Active Adversary Incursion</div>
                 </div>
-                
+
                 <div class="kill-chain-track" id="kill-chain-nodes">
                     <!-- Populated dynamically -->
                 </div>
 
-                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(5,7,11,0.7); padding:0.95rem 1.4rem; border-radius:12px; border:1px solid var(--border-hairline); margin-top:0.75rem; font-family:var(--font-mono); font-size:0.76rem; flex-wrap:wrap; gap:0.8rem;">
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; background:rgba(5,7,11,0.7); padding:0.95rem 1.4rem; border-radius:12px; border:1px solid var(--border-hairline); margin-top:0.75rem; font-family:var(--font-mono); font-size:0.76rem; flex-wrap:wrap; gap:0.8rem;">
                     <div>
                         <span style="color:var(--zinc-500);">Current Active Tactic:</span>
-                        <strong id="kc-current-tactic" style="color:#FFFFFF; margin-left:0.5rem;">Credential Access (T1110)</strong>
+                        <strong id="kc-current-tactic" style="color:#FFFFFF; margin-left:0.5rem;">Credential Access
+                            (T1110)</strong>
                     </div>
                     <div>
                         <span style="color:var(--zinc-500);">Predicted Next Move:</span>
-                        <strong id="kc-next-tactic" style="color:#FFFFFF; margin-left:0.5rem;">Lateral Movement (T1021)</strong>
+                        <strong id="kc-next-tactic" style="color:#FFFFFF; margin-left:0.5rem;">Lateral Movement
+                            (T1021)</strong>
                     </div>
                     <div>
                         <span style="color:var(--zinc-500);">Transition Probability:</span>
@@ -1934,7 +2005,8 @@
         <section id="section-topology" class="content-section">
             <div class="section-eyebrow">&sect; 04 &mdash; Spatial Threat Graph</div>
             <h2 class="section-title">Network Topology Graph &amp; Lateral Pivot Map</h2>
-            <p class="section-desc">GraphSAGE spatial graph visualizer mapping lateral movement across security perimeters with one-click SOAR node isolation.</p>
+            <p class="section-desc">GraphSAGE spatial graph visualizer mapping lateral movement across security
+                perimeters with one-click SOAR node isolation.</p>
 
             <!-- Topology KPI Mini-Strip -->
             <div class="kpi-mini-strip">
@@ -1955,7 +2027,8 @@
                 </div>
                 <div class="kpi-mini">
                     <div class="kpi-mini-label">Lateral Traversal Vector</div>
-                    <div class="kpi-mini-value" style="font-size:1.15rem;" id="kpi-topo-vector">WS &rarr; AD &rarr; DB</div>
+                    <div class="kpi-mini-value" style="font-size:1.15rem;" id="kpi-topo-vector">WS &rarr; AD &rarr; DB
+                    </div>
                     <div class="kpi-mini-sub">GraphSAGE Prob: 89%</div>
                 </div>
             </div>
@@ -1974,11 +2047,20 @@
                         </div>
                     </div>
                     <canvas id="topology-canvas"></canvas>
-                    <div style="display:flex; gap:1.5rem; justify-content:center; margin-top:0.85rem; font-family:var(--font-mono); font-size:0.7rem; flex-wrap:wrap;">
-                        <span style="display:flex; align-items:center; gap:0.4rem;"><span style="width:10px; height:10px; border-radius:50%; background:#71717A;"></span> Clean Node</span>
-                        <span style="display:flex; align-items:center; gap:0.4rem;"><span style="width:10px; height:10px; border-radius:50%; background:#D4D4D8;"></span> At-Risk Node</span>
-                        <span style="display:flex; align-items:center; gap:0.4rem;"><span style="width:10px; height:10px; border-radius:50%; background:#FFFFFF; box-shadow:0 0 6px #fff;"></span> Compromised / Pivot</span>
-                        <span style="display:flex; align-items:center; gap:0.4rem;"><span style="width:10px; height:10px; border-radius:50%; border:1px dashed #A1A1AA;"></span> Quarantined / Isolated</span>
+                    <div
+                        style="display:flex; gap:1.5rem; justify-content:center; margin-top:0.85rem; font-family:var(--font-mono); font-size:0.7rem; flex-wrap:wrap;">
+                        <span style="display:flex; align-items:center; gap:0.4rem;"><span
+                                style="width:10px; height:10px; border-radius:50%; background:#71717A;"></span> Clean
+                            Node</span>
+                        <span style="display:flex; align-items:center; gap:0.4rem;"><span
+                                style="width:10px; height:10px; border-radius:50%; background:#D4D4D8;"></span> At-Risk
+                            Node</span>
+                        <span style="display:flex; align-items:center; gap:0.4rem;"><span
+                                style="width:10px; height:10px; border-radius:50%; background:#FFFFFF; box-shadow:0 0 6px #fff;"></span>
+                            Compromised / Pivot</span>
+                        <span style="display:flex; align-items:center; gap:0.4rem;"><span
+                                style="width:10px; height:10px; border-radius:50%; border:1px dashed #A1A1AA;"></span>
+                            Quarantined / Isolated</span>
                     </div>
                 </div>
 
@@ -1991,36 +2073,47 @@
                         <div class="vigil-card-tag" id="topo-selected-zone">DMZ</div>
                     </div>
 
-                    <div style="display:flex; flex-direction:column; gap:0.85rem; font-family:var(--font-mono); font-size:0.75rem;" id="topo-node-inspector">
+                    <div style="display:flex; flex-direction:column; gap:0.85rem; font-family:var(--font-mono); font-size:0.75rem;"
+                        id="topo-node-inspector">
                         <div>
-                            <div style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase;">Host Label:</div>
-                            <strong style="font-size:0.95rem; color:#FFFFFF;" id="insp-label">Finance Workstation 04</strong>
+                            <div style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase;">Host Label:
+                            </div>
+                            <strong style="font-size:0.95rem; color:#FFFFFF;" id="insp-label">Finance Workstation
+                                04</strong>
                         </div>
                         <div>
-                            <div style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase;">IP Address:</div>
+                            <div style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase;">IP Address:
+                            </div>
                             <strong style="color:#FFFFFF;" id="insp-ip">172.16.2.100</strong>
                         </div>
                         <div>
-                            <div style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase;">Security Status:</div>
+                            <div style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase;">Security
+                                Status:</div>
                             <span class="badge badge-high" id="insp-status">COMPROMISED</span>
                         </div>
                         <div>
-                            <div style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase;">Risk Score &amp; Criticality:</div>
-                            <span style="color:#FFFFFF; font-weight:700;" id="insp-risk">0.820</span> (Criticality: <span id="insp-crit">0.45</span>)
+                            <div style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase;">Risk Score
+                                &amp; Criticality:</div>
+                            <span style="color:#FFFFFF; font-weight:700;" id="insp-risk">0.820</span> (Criticality:
+                            <span id="insp-crit">0.45</span>)
                         </div>
                         <div>
-                            <div style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase;">Open Listening Ports:</div>
+                            <div style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase;">Open
+                                Listening Ports:</div>
                             <code id="insp-ports">3389, 445</code>
                         </div>
                         <div>
-                            <div style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase;">Adversary Details:</div>
-                            <div style="color:var(--zinc-300); font-size:0.72rem; line-height:1.45; background:rgba(5,7,11,0.7); padding:0.65rem; border-radius:8px; border:1px solid var(--border-hairline);" id="insp-details">
+                            <div style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase;">Adversary
+                                Details:</div>
+                            <div style="color:var(--zinc-300); font-size:0.72rem; line-height:1.45; background:rgba(5,7,11,0.7); padding:0.65rem; border-radius:8px; border:1px solid var(--border-hairline);"
+                                id="insp-details">
                                 Initial phishing ingress point with active TrickBot beacon targeting Domain Controller.
                             </div>
                         </div>
 
                         <div style="margin-top:0.75rem; border-top:1px solid var(--border-hairline); padding-top:1rem;">
-                            <button class="btn-quarantine" style="width:100%; padding:0.65rem; font-size:0.76rem;" id="btn-quarantine-node" onclick="quarantineCurrentNode()">
+                            <button class="btn-quarantine" style="width:100%; padding:0.65rem; font-size:0.76rem;"
+                                id="btn-quarantine-node" onclick="quarantineCurrentNode()">
                                 [ISOLATE] Execute SOAR Quarantine (Sever Node)
                             </button>
                         </div>
@@ -2707,7 +2800,7 @@
         }
 
         // ==========================================
-        
+
         // ==========================================
         // Remote Backend & Render Endpoint Manager
         // ==========================================
@@ -2722,7 +2815,7 @@
                 }
                 const saved = localStorage.getItem('vigil_backend_url');
                 if (saved) return saved.replace(/\/+$/, '');
-            } catch (e) {}
+            } catch (e) { }
             return '';
         }
 
@@ -2753,7 +2846,7 @@
                         txt.title = `Connected to: ${apiBase}`;
                         return;
                     }
-                } catch (e) {}
+                } catch (e) { }
                 dot.style.background = '#F59E0B';
                 txt.textContent = 'RENDER CONNECTING';
                 txt.title = `Connecting to: ${apiBase}`;
@@ -2765,7 +2858,7 @@
                         txt.textContent = 'LOCAL API';
                         return;
                     }
-                } catch (e) {}
+                } catch (e) { }
                 dot.style.background = '#71717A';
                 txt.textContent = 'DEMO STREAM';
                 txt.title = 'Running standalone simulation. Click to connect Render backend.';
@@ -3287,14 +3380,14 @@
             const loc = window.location;
             const protocol = loc.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = getWebSocketUrl();
-            
+
             try {
                 if (ws) {
                     ws.onclose = null;
                     ws.onerror = null;
                     ws.close();
                 }
-            } catch (e) {}
+            } catch (e) { }
 
             try {
                 ws = new WebSocket(wsUrl);
@@ -3357,7 +3450,7 @@
             }
 
             const isZd = Boolean(
-                flow.is_zero_day_anomaly || 
+                flow.is_zero_day_anomaly ||
                 (flow.zero_day_detection && (flow.zero_day_detection.is_zero_day || flow.zero_day_detection.is_zero_day_anomaly))
             );
             if (isZd) {
@@ -3403,7 +3496,7 @@
 
                 const sevClass = `badge-${(flow.severity || 'low').toLowerCase()}`;
                 const timeStr = new Date().toTimeString().split(' ')[0];
-                const topDriver = (flow.top_contributions && flow.top_contributions[0]) 
+                const topDriver = (flow.top_contributions && flow.top_contributions[0])
                     ? (flow.top_contributions[0].feature || flow.top_contributions[0].feature_name || '-')
                     : '-';
 
@@ -3449,7 +3542,7 @@
                 const feat = c.feature || c.feature_name || 'Feature';
                 const isPos = score >= 0;
                 const widthPct = Math.min(100, Math.max(6, (Math.abs(score) / maxVal) * 100));
-                
+
                 const div = document.createElement('div');
                 div.className = 'shap-row';
                 div.innerHTML = `
@@ -3473,7 +3566,7 @@
             const isHigh = (flow.severity || '').toLowerCase() === 'high';
             alert.className = `alert-item live-pulse ${isCrit ? 'alert-critical' : (isHigh ? 'alert-high' : '')}`;
             const sevClass = `badge-${(flow.severity || 'high').toLowerCase()}`;
-            const topFeat = (flow.top_contributions && flow.top_contributions[0]) 
+            const topFeat = (flow.top_contributions && flow.top_contributions[0])
                 ? (flow.top_contributions[0].feature || flow.top_contributions[0].feature_name || 'Anomaly')
                 : 'Anomaly';
 
@@ -3631,7 +3724,7 @@
             const hash = window.location.hash.replace('#', '');
             const urlParams = new URLSearchParams(window.location.search);
             const tabParam = urlParams.get('tab') || hash;
-            
+
             if (tabParam === 'live' || tabParam === 'tab-live' || window.location.pathname.includes('/console')) {
                 setTimeout(() => scrollToTarget('section-threats-stream'), 300);
             } else if (tabParam === 'forecast' || tabParam === 'tab-forecast') {
@@ -3645,4 +3738,5 @@
         });
     </script>
 </body>
+
 </html>

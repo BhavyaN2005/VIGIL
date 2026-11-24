@@ -102,8 +102,6 @@ Vigil/
 │   ├── index.html            # Landing Page, Architectural Overview & Model Benchmarks
 │   ├── console.html          # VIGIL Threat Operations & Spatial Attack Forecasting Console
 │   ├── dashboard.html        # Backward-compatibility alias
-│   ├── components/           # Standalone UI components (glass capsule)
-│   ├── js/                   # liquid-glass-engine.js (WebGL Three.js 3D caustic liquid glass shader)
 │   └── vercel.json           # Frontend direct Vercel deployment configuration
 │
 ├── ml/                       # Machine Learning & Explainable AI Pipeline
