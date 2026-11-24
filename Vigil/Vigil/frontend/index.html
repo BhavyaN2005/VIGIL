@@ -1,0 +1,2852 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIGIL — Explainable AI Network Intrusion Detection System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script src="/static/js/liquid-glass-engine.js"></script>
+    <style>
+        :root {
+            /* Strict Swiss-Monochrome Color Tokens */
+            --bg-canvas: #050505;
+            --bg-surface: #0A0A0E;
+            --bg-card: rgba(10, 10, 14, 0.74);
+            --border-hairline: rgba(255, 255, 255, 0.09);
+            --border-hover: rgba(255, 255, 255, 0.32);
+            --border-active: #FFFFFF;
+
+            --white: #FFFFFF;
+            --zinc-100: #F4F4F5;
+            --zinc-200: #E4E4E7;
+            --zinc-300: #D4D4D8;
+            --zinc-400: #A1A1AA;
+            --zinc-500: #71717A;
+            --zinc-600: #52525B;
+            --zinc-700: #3F3F46;
+            --zinc-800: #27272A;
+            --zinc-900: #18181B;
+            --zinc-950: #09090B;
+
+            /* Strict Font Hierarchy */
+            --font-display: 'Space Grotesk', -apple-system, sans-serif;
+            --font-sans: 'Inter', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+            background: #050505 !important;
+            background-color: var(--bg-canvas) !important;
+            color: var(--zinc-100);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            scroll-behavior: smooth;
+        }
+
+        /* Full-Screen Pure 3D Canvas fixed as persistent background */
+        #hero-3d-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            display: block;
+            background: transparent !important;
+            pointer-events: none;
+        }
+
+        /* Subtle Ambient Vignette Overlay */
+        .vignette-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 40%, rgba(5, 5, 5, 0.8) 100%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* VIGIL Prism Capsule (Central Convex Liquid Glass Optical Lens) */
+        .liquid-glass-lens {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: clamp(340px, 46vw, 560px);
+            height: clamp(170px, 24vh, 270px);
+            border-radius: 9999px;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            cursor: grab;
+            transition: opacity 0.35s ease, border-color 0.35s ease;
+            pointer-events: auto;
+        }
+
+        .liquid-glass-lens.hidden {
+            display: none !important;
+        }
+
+        .lens-badge {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--white);
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            padding: 0.4rem 1.05rem;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 999px;
+            backdrop-filter: blur(12px);
+            pointer-events: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Unified Top Navigation Prism Capsule */
+        .navbar {
+            position: fixed;
+            top: 1.15rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            width: max-content;
+            max-width: 96vw;
+        }
+
+        .navbar.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, -24px);
+        }
+
+        .nav-prism-capsule {
+            pointer-events: auto;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.35rem 0.65rem 0.35rem 0.85rem;
+            border-radius: 9999px;
+            background: rgba(10, 10, 14, 0.82);
+            backdrop-filter: url(#liquid-convex-lens-nav) blur(20px) saturate(120%);
+            -webkit-backdrop-filter: url(#liquid-convex-lens-nav) blur(20px) saturate(120%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow:
+                0 20px 50px -10px rgba(0, 0, 0, 0.9),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.14),
+                inset 0 -1px 0 0 rgba(0, 0, 0, 0.7);
+            user-select: none;
+            cursor: default !important;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .nav-prism-capsule:hover {
+            border-color: rgba(255, 255, 255, 0.28);
+        }
+
+        .nav-brand {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            text-decoration: none;
+            cursor: pointer;
+            padding: 0.2rem 0.4rem;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .nav-brand:hover {
+            opacity: 0.85;
+        }
+
+        .nav-logo {
+            width: 26px;
+            height: 26px;
+            background: var(--white);
+            color: #000;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+        }
+
+        .nav-brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.15;
+        }
+
+        .nav-title {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            color: var(--white);
+        }
+
+        .nav-sub {
+            font-size: 0.55rem;
+            font-family: var(--font-mono);
+            color: var(--zinc-400);
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .nav-divider {
+            width: 1px;
+            height: 18px;
+            background: rgba(255, 255, 255, 0.12);
+            flex-shrink: 0;
+        }
+
+        /* Top Nav Capsule Links with Pure White Slider Bar */
+        .nav-links {
+            position: relative;
+            display: flex;
+            align-items: center;
+            list-style: none;
+            margin: 0;
+            padding: 0 0.2rem;
+            gap: 0.15rem;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+
+        .nav-links li {
+            position: relative;
+            display: flex;
+            align-items: center;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-active-bar {
+            position: absolute;
+            bottom: 0px;
+            left: 0;
+            height: 2.5px;
+            border-radius: 9999px;
+            background: #ffffff;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.95), 0 0 3px #ffffff;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0;
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.2s ease;
+            transform: translate3d(0, 0, 0);
+        }
+
+        .nav-link {
+            position: relative;
+            z-index: 2;
+            color: var(--zinc-400);
+            text-decoration: none;
+            font-size: 0.74rem;
+            font-family: var(--font-mono);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.45rem 0.85rem;
+            display: inline-block;
+            transition: color 0.22s ease, text-shadow 0.22s ease;
+            white-space: nowrap;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            outline: none;
+            border-radius: 4px;
+        }
+
+        .nav-link:hover {
+            color: var(--white);
+        }
+
+        .nav-link.active {
+            color: var(--white);
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.7);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .prism-capsule-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            color: var(--white);
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.38rem 0.85rem;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            user-select: none;
+            outline: none;
+            white-space: nowrap;
+        }
+
+        .prism-capsule-btn:hover {
+            background: rgba(255, 255, 255, 0.14);
+            border-color: rgba(255, 255, 255, 0.35);
+            color: var(--white);
+        }
+
+        .prism-capsule-btn.inactive {
+            opacity: 0.5;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .capsule-pulse-dot {
+            width: 6px;
+            height: 6px;
+            background: #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.95);
+            animation: pulse-capsule 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-capsule {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.35;
+                transform: scale(0.8);
+            }
+        }
+
+        /* ===== SCROLLABLE PAGE CONTENT ===== */
+        .page-content {
+            position: relative;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .page-content>* {
+            pointer-events: auto;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            pointer-events: none;
+        }
+
+        .hero-text-block {
+            text-align: center;
+            margin-top: -40px;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .hero-eyebrow {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--zinc-300);
+            margin-bottom: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+        }
+
+        .hero-status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 10px #ffffff;
+            display: inline-block;
+            animation: pulse-capsule 2s infinite ease-in-out;
+        }
+
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: clamp(3.2rem, 8vw, 6.5rem);
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            color: #FFFFFF;
+            line-height: 1.0;
+            text-shadow: 0 0 70px rgba(255, 255, 255, 0.14);
+            margin-bottom: 0.65rem;
+        }
+
+        .hero-subtitle {
+            font-family: var(--font-sans);
+            font-size: clamp(0.95rem, 1.8vw, 1.22rem);
+            color: var(--zinc-300);
+            letter-spacing: 0.01em;
+            margin-bottom: 2.2rem;
+            max-width: 620px;
+            margin-left: auto;
+            margin-right: auto;
+            font-weight: 400;
+        }
+
+        .hero-ctas {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            pointer-events: auto;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.75rem 1.6rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.10);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            color: #FFFFFF;
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-primary:hover {
+            background: #FFFFFF;
+            border-color: #FFFFFF;
+            color: #000000;
+            box-shadow: 0 0 24px rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.75rem 1.6rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: var(--zinc-400);
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.22s ease;
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.09);
+            border-color: rgba(255, 255, 255, 0.28);
+            color: #FFFFFF;
+            transform: translateY(-2px);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.45rem;
+            pointer-events: none;
+            animation: float-scroll 2.5s infinite ease-in-out;
+        }
+
+        .scroll-indicator span {
+            font-family: var(--font-mono);
+            font-size: 0.62rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--zinc-500);
+        }
+
+        .scroll-indicator svg {
+            opacity: 0.4;
+        }
+
+        @keyframes float-scroll {
+
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            50% {
+                transform: translateX(-50%) translateY(8px);
+            }
+        }
+
+        /* Section Layout */
+        .content-section {
+            padding: 6.5rem 2rem;
+            max-width: 1280px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .section-eyebrow {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+            color: var(--zinc-400);
+            margin-bottom: 0.65rem;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 4vw, 2.7rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: #FFFFFF;
+            margin-bottom: 0.65rem;
+            line-height: 1.15;
+        }
+
+        .section-desc {
+            font-size: 0.95rem;
+            color: var(--zinc-400);
+            max-width: 620px;
+            margin-bottom: 2.8rem;
+            line-height: 1.65;
+            font-weight: 400;
+        }
+
+        /* Monochromatic Frosted Glass Cards */
+        /* ===== PRISM CAPSULE VISUAL BOXES ===== */
+        .prism-capsule-card {
+            position: relative;
+            border-radius: 28px;
+            padding: 2.1rem 1.95rem;
+            background: rgba(8, 9, 14, 0.40);
+            backdrop-filter: url(#liquid-convex-cards) blur(0.5px) saturate(120%);
+            -webkit-backdrop-filter: url(#liquid-convex-cards) blur(0.5px) saturate(120%);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow:
+                0 24px 60px -12px rgba(0, 0, 0, 0.85),
+                inset 0 1.5px 0 0 rgba(255, 255, 255, 0.48),
+                inset 0 0 24px 0 rgba(255, 255, 255, 0.03),
+                inset 0 -1.5px 0 0 rgba(0, 0, 0, 0.8);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.3s ease,
+                box-shadow 0.3s ease;
+            overflow: hidden;
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Convex Optical Lens Sheen on the top half */
+        .prism-capsule-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 52%;
+            border-radius: 28px 28px 120px 120px / 28px 28px 40px 40px;
+            background: linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.14) 0%,
+                    rgba(255, 255, 255, 0.03) 60%,
+                    rgba(255, 255, 255, 0) 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Subtle Prismatic Spectral Glint on the perimeter rim */
+        .prism-capsule-card::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 29px;
+            padding: 1px;
+            background: linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.55) 0%,
+                    rgba(210, 230, 255, 0.22) 28%,
+                    rgba(255, 220, 245, 0.14) 52%,
+                    rgba(220, 255, 245, 0.20) 76%,
+                    rgba(255, 255, 255, 0.45) 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            opacity: 0.75;
+            transition: opacity 0.3s ease;
+            z-index: 2;
+        }
+
+        .prism-capsule-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.42);
+            box-shadow:
+                0 34px 75px -12px rgba(0, 0, 0, 0.95),
+                inset 0 2px 0 0 rgba(255, 255, 255, 0.72),
+                inset 0 0 35px 0 rgba(255, 255, 255, 0.06),
+                inset 0 -2px 0 0 rgba(0, 0, 0, 0.8),
+                0 0 24px rgba(255, 255, 255, 0.10);
+        }
+
+        .prism-capsule-card:hover::after {
+            opacity: 1;
+        }
+
+        /* Interactive Dynamic Caustic Sheen overlay */
+        .prism-capsule-card .card-caustic {
+            position: absolute;
+            inset: 0;
+            border-radius: 28px;
+            background: radial-gradient(circle 240px at var(--sheen-x, 50%) var(--sheen-y, 50%), rgba(255, 255, 255, 0.09), transparent 70%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            z-index: 2;
+        }
+
+        .prism-capsule-card:hover .card-caustic {
+            opacity: 1;
+        }
+
+        /* Optical Capsule Pill Badge */
+        .cap-prism-pill {
+            position: relative;
+            z-index: 3;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.38rem 0.95rem;
+            border-radius: 9999px;
+            background: rgba(0, 0, 0, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 4px 12px rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            letter-spacing: 0.16em;
+            font-weight: 600;
+            color: #FFFFFF;
+            margin-bottom: 1.35rem;
+            width: max-content;
+        }
+
+        /* Optical Inset Capsule Groove for Stats */
+        .cap-stat-capsule {
+            position: relative;
+            z-index: 3;
+            margin-top: 1.5rem;
+            padding: 0.48rem 1.05rem;
+            border-radius: 9999px;
+            background: rgba(0, 0, 0, 0.60);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            color: var(--zinc-300);
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            width: max-content;
+        }
+
+        .stat-indicator-bar {
+            width: 14px;
+            height: 3px;
+            border-radius: 9999px;
+            background: #FFFFFF;
+            box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+        }
+
+        /* Enhanced Vigil Cards with Optical Glass Depth */
+        .vigil-card {
+            background: rgba(8, 9, 14, 0.42);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            backdrop-filter: url(#liquid-convex-cards) blur(0.5px) saturate(120%);
+            -webkit-backdrop-filter: url(#liquid-convex-cards) blur(0.5px) saturate(120%);
+            border-radius: 24px;
+            padding: 1.65rem;
+            position: relative;
+            box-shadow:
+                0 24px 60px -12px rgba(0, 0, 0, 0.85),
+                inset 0 1.5px 0 0 rgba(255, 255, 255, 0.40),
+                inset 0 0 24px 0 rgba(255, 255, 255, 0.03),
+                inset 0 -1.5px 0 0 rgba(0, 0, 0, 0.8);
+            transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+            pointer-events: auto;
+            overflow: hidden;
+        }
+
+        .vigil-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 45%;
+            border-radius: 24px 24px 90px 90px / 24px 24px 30px 30px;
+            background: linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.10) 0%,
+                    rgba(255, 255, 255, 0.02) 60%,
+                    transparent 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .vigil-card:hover {
+            border-color: rgba(255, 255, 255, 0.38);
+            box-shadow:
+                0 30px 70px -12px rgba(0, 0, 0, 0.95),
+                inset 0 2px 0 0 rgba(255, 255, 255, 0.60),
+                inset 0 0 30px 0 rgba(255, 255, 255, 0.05),
+                inset 0 -2px 0 0 rgba(0, 0, 0, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .vigil-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.85rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .vigil-card-title {
+            font-family: var(--font-display);
+            font-size: 0.98rem;
+            font-weight: 600;
+            color: #FFFFFF;
+            letter-spacing: 0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .vigil-card-tag {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--zinc-400);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Grid Layouts */
+        .cards-grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+        }
+
+        .cards-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .cards-grid-topo {
+            display: grid;
+            grid-template-columns: 2.8fr 1.2fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .cards-grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .cards-grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .cards-grid-topo {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .cards-grid-4 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Monochromatic Architectural Glyph Icon */
+        .cap-glyph {
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--white);
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            margin-bottom: 1.1rem;
+        }
+
+        .cap-title {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #FFFFFF;
+            margin-bottom: 0.45rem;
+        }
+
+        .cap-desc {
+            font-size: 0.84rem;
+            color: var(--zinc-400);
+            line-height: 1.6;
+        }
+
+        .cap-stat {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--zinc-300);
+            margin-top: 0.95rem;
+            letter-spacing: 0.06em;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        /* Monochromatic KPI Strip */
+        .kpi-mini-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .kpi-mini-strip {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .kpi-mini {
+            background: var(--bg-card);
+            border: 1px solid var(--border-hairline);
+            backdrop-filter: blur(20px);
+            border-radius: 12px;
+            padding: 1.1rem 1.25rem;
+            font-family: var(--font-mono);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-mini::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .kpi-mini.primary::before {
+            background: #FFFFFF;
+        }
+
+        .kpi-mini-label {
+            font-size: 0.68rem;
+            color: var(--zinc-500);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 0.35rem;
+        }
+
+        .kpi-mini-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #FFFFFF;
+            font-feature-settings: "tnum";
+            line-height: 1.1;
+        }
+
+        .kpi-mini-sub {
+            font-size: 0.68rem;
+            color: var(--zinc-400);
+            margin-top: 0.3rem;
+        }
+
+        /* Monochromatic Alert Feed */
+        .alert-feed-item {
+            padding: 0.85rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .alert-feed-item:last-child {
+            border-bottom: none;
+        }
+
+        .alert-class {
+            font-weight: 600;
+            font-size: 0.8rem;
+            letter-spacing: 0.04em;
+            color: #FFFFFF;
+        }
+
+        .alert-badge {
+            display: inline-block;
+            padding: 0.15rem 0.45rem;
+            border-radius: 3px;
+            font-size: 0.64rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .alert-badge.crit {
+            background: #FFFFFF;
+            color: #000000;
+        }
+
+        .alert-badge.warn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #FFFFFF;
+        }
+
+        .alert-badge.info {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--zinc-400);
+        }
+
+        .alert-time {
+            color: var(--zinc-500);
+            font-size: 0.68rem;
+            white-space: nowrap;
+        }
+
+        /* Model Cards */
+        .model-card-inner {
+            padding: 0.4rem 0 0.1rem;
+        }
+
+        .model-accuracy {
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #FFFFFF;
+            letter-spacing: -0.03em;
+            margin: 0.35rem 0;
+        }
+
+        .model-name {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--zinc-400);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .model-desc {
+            font-size: 0.82rem;
+            color: var(--zinc-400);
+            line-height: 1.55;
+            margin-top: 0.45rem;
+        }
+
+        /* Monochromatic SHAP Waterfall */
+        .shap-row-mini {
+            display: grid;
+            grid-template-columns: 160px 1fr 65px;
+            align-items: center;
+            gap: 0.85rem;
+            font-family: var(--font-mono);
+            font-size: 0.74rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .shap-label-mini {
+            color: var(--zinc-300);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .shap-track-mini {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .shap-bar-pos-mini {
+            height: 100%;
+            background: #FFFFFF;
+            border-radius: 2px;
+        }
+
+        .shap-bar-neg-mini {
+            height: 100%;
+            background: rgba(255, 255, 255, 0.28);
+            border-radius: 2px;
+        }
+
+        .shap-val-mini {
+            color: var(--zinc-200);
+            text-align: right;
+            font-weight: 500;
+        }
+
+        /* Monochromatic Topology Canvas */
+        #home-topology-canvas {
+            width: 100%;
+            height: 380px;
+            background: rgba(8, 8, 12, 0.8);
+            border: 1px solid var(--border-hairline);
+            border-radius: 10px;
+            cursor: crosshair;
+            display: block;
+        }
+
+        /* Monochromatic Operations Link Banner */
+        .ops-link-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.2rem 1.6rem;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 14px;
+            margin-top: 1.5rem;
+            text-decoration: none;
+            transition: all 0.22s ease;
+            pointer-events: auto;
+        }
+
+        .ops-link-banner:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.32);
+            transform: translateX(4px);
+        }
+
+        .ops-link-text {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #FFFFFF;
+        }
+
+        .ops-link-sub {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--zinc-400);
+            margin-top: 0.2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+
+        .section-divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08) 30%, rgba(255, 255, 255, 0.08) 70%, transparent);
+            margin: 0 auto;
+            max-width: 1280px;
+        }
+
+        /* Monochromatic Footer */
+        .vigil-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 2.5rem 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 0.74rem;
+            color: var(--zinc-500);
+            max-width: 1280px;
+            margin: 0 auto;
+            pointer-events: auto;
+        }
+
+        .footer-brand {
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: #FFFFFF;
+            font-size: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 1.8rem;
+        }
+
+        .footer-links a {
+            color: var(--zinc-400);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: #FFFFFF;
+        }
+
+        .footer-status {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+        }
+
+        .footer-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+            animation: pulse-capsule 2s infinite;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Full-Screen 3D Background Canvas -->
+    <canvas id="hero-3d-canvas"></canvas>
+
+    <!-- Subtle Ambient Vignette Overlay -->
+    <div class="vignette-overlay"></div>
+
+    <!-- VIGIL Prism Capsule -->
+    <div class="liquid-glass-lens" id="hero-lens" data-name="Prism Capsule"
+        title="VIGIL Prism Capsule &middot; Drag across 3D scene">
+        <div class="lens-badge">PRISM CAPSULE &bull; OPTICAL LENS</div>
+    </div>
+
+    <!-- Unified Floating Top Nav Prism Capsule -->
+    <header class="navbar" id="main-navbar">
+        <nav class="nav-prism-capsule" id="nav-prism-capsule">
+            <a href="/" class="nav-brand">
+                <div class="nav-logo">V</div>
+                <div class="nav-brand-text">
+                    <span class="nav-title">VIGIL</span>
+                    <span class="nav-sub">XAI &bull; NIDS</span>
+                </div>
+            </a>
+
+            <div class="nav-divider"></div>
+
+            <ul class="nav-links" id="nav-links">
+                <div class="nav-active-bar" id="nav-active-bar"></div>
+                <li><a href="#section-overview" class="nav-link" data-section="section-overview">Overview</a></li>
+                <li><a href="#section-threats" class="nav-link" data-section="section-threats">Threats</a></li>
+                <li><a href="#section-operations" class="nav-link" data-section="section-operations">Operations</a></li>
+                <li><a href="#section-models" class="nav-link" data-section="section-models">Models</a></li>
+                <li><a href="#section-explain" class="nav-link" data-section="section-explain">Explain</a></li>
+                <li><a href="#section-topology" class="nav-link" data-section="section-topology">Topology</a></li>
+                <li><a href="/dashboard" class="nav-link">Console &rarr;</a></li>
+            </ul>
+
+            <div class="nav-divider"></div>
+
+            <div class="nav-actions">
+                <button class="prism-capsule-btn active" id="btn-toggle-lens" title="Toggle Prism Capsule (Key L)">
+                    <span class="capsule-pulse-dot"></span>
+                    <span id="lens-btn-label">CAPSULE: ON</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+
+    <!-- ===== SCROLLABLE PAGE CONTENT ===== -->
+    <div class="page-content">
+
+        <!-- SECTION 1: HERO -->
+        <section class="hero-section" id="section-hero">
+            <div class="hero-text-block">
+                <div class="hero-eyebrow">
+                    <span class="hero-status-dot"></span>
+                    <span>SYSTEM ACTIVE &bull; XAI-NIDS v2.1 &bull; 4 MODELS ONLINE</span>
+                </div>
+                <h1 class="hero-title">VIGIL</h1>
+                <p class="hero-subtitle">Explainable AI &middot; Network Intrusion Detection &amp; Spatial Threat
+                    Intelligence</p>
+                <div class="hero-ctas">
+                    <a href="/dashboard" class="btn-primary">Enter Operations &rarr;</a>
+                    <a href="/docs" class="btn-ghost" target="_blank">View API Docs</a>
+                </div>
+            </div>
+            <div class="scroll-indicator">
+                <svg width="16" height="24" viewBox="0 0 16 24" fill="none">
+                    <rect x="6" y="1" width="4" height="8" rx="2" fill="white" opacity="0.6" />
+                    <path d="M8 15L4 19H12L8 15Z" fill="white" opacity="0.6" />
+                </svg>
+                <span>Scroll to explore</span>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- SECTION 2: CAPABILITIES OVERVIEW -->
+        <section class="content-section" id="section-overview">
+            <div class="section-eyebrow">&sect; 01 &mdash; Detection Architecture</div>
+            <h2 class="section-title">Multi-Model Detection Engine</h2>
+            <p class="section-desc">Four specialized AI algorithms running concurrent packet triage. Real-time ensemble
+                arbitration with SHAP per-feature attribution on every flow.</p>
+            <div class="cards-grid-4">
+                <div class="prism-capsule-card">
+                    <div class="card-caustic"></div>
+                    <div>
+                        <div class="cap-prism-pill">
+                            <span class="capsule-pulse-dot" style="width:5px;height:5px;"></span>
+                            <span>RF &bull; 01</span>
+                        </div>
+                        <div class="cap-title">Random Forest</div>
+                        <div class="cap-desc">200 bagged decision trees with TreeExplainer SHAP values for granular
+                            per-feature attribution.</div>
+                    </div>
+                    <div class="cap-stat-capsule">
+                        <span class="stat-indicator-bar"></span>
+                        <span>ACCURACY: 99.8% &bull; 200 trees</span>
+                    </div>
+                </div>
+
+                <div class="prism-capsule-card">
+                    <div class="card-caustic"></div>
+                    <div>
+                        <div class="cap-prism-pill">
+                            <span class="capsule-pulse-dot" style="width:5px;height:5px;"></span>
+                            <span>XGB &bull; 02</span>
+                        </div>
+                        <div class="cap-title">XGBoost</div>
+                        <div class="cap-desc">Extreme gradient boosting with depth-6 trees optimized for sub-millisecond
+                            line-rate classification.</div>
+                    </div>
+                    <div class="cap-stat-capsule">
+                        <span class="stat-indicator-bar"></span>
+                        <span>ACCURACY: 99.5% &bull; depth-6</span>
+                    </div>
+                </div>
+
+                <div class="prism-capsule-card">
+                    <div class="card-caustic"></div>
+                    <div>
+                        <div class="cap-prism-pill">
+                            <span class="capsule-pulse-dot" style="width:5px;height:5px;"></span>
+                            <span>RNN &bull; 03</span>
+                        </div>
+                        <div class="cap-title">LSTM Sequence</div>
+                        <div class="cap-desc">64-unit recurrent neural network capturing temporal flow dynamics and
+                            multi-stage lateral probes.</div>
+                    </div>
+                    <div class="cap-stat-capsule">
+                        <span class="stat-indicator-bar"></span>
+                        <span>ACCURACY: 98.9% &bull; 64 units</span>
+                    </div>
+                </div>
+
+                <div class="prism-capsule-card">
+                    <div class="card-caustic"></div>
+                    <div>
+                        <div class="cap-prism-pill">
+                            <span class="capsule-pulse-dot" style="width:5px;height:5px;"></span>
+                            <span>AE &bull; 04</span>
+                        </div>
+                        <div class="cap-title">KitNET Zero-Day</div>
+                        <div class="cap-desc">Unsupervised ensemble of autoencoders with adaptive threshold &tau; =
+                            1.627 for novel anomaly triage.</div>
+                    </div>
+                    <div class="cap-stat-capsule">
+                        <span class="stat-indicator-bar"></span>
+                        <span>&tau; = 1.627 &bull; unsupervised</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- SECTION 3: THREATS FEED & KPIS -->
+        <section class="content-section" id="section-threats">
+            <div class="section-eyebrow">&sect; 02 &mdash; Live Intelligence</div>
+            <h2 class="section-title">Threat Detection Feed</h2>
+            <p class="section-desc">Real-time classification events streaming from the dual-engine detection pipeline
+                with ensemble confidence ratings.</p>
+
+            <div class="kpi-mini-strip">
+                <div class="kpi-mini primary">
+                    <div class="kpi-mini-label">Engine Status</div>
+                    <div class="kpi-mini-value" id="kpi-flows">ACTIVE</div>
+                    <div class="kpi-mini-sub" id="kpi-engine-sub">Dual-Engine CIC+Kitsune</div>
+                </div>
+                <div class="kpi-mini">
+                    <div class="kpi-mini-label">Threats Today</div>
+                    <div class="kpi-mini-value" id="kpi-threats">&mdash;</div>
+                    <div class="kpi-mini-sub">Classified alerts</div>
+                </div>
+                <div class="kpi-mini">
+                    <div class="kpi-mini-label">Zero-Day Anomalies</div>
+                    <div class="kpi-mini-value" id="kpi-zeroday">&mdash;</div>
+                    <div class="kpi-mini-sub">KitNET threshold &tau;</div>
+                </div>
+                <div class="kpi-mini">
+                    <div class="kpi-mini-label">Inference Latency</div>
+                    <div class="kpi-mini-value" id="kpi-latency">&lt; 1 ms</div>
+                    <div class="kpi-mini-sub">Sub-millisecond triage</div>
+                </div>
+            </div>
+
+            <div class="vigil-card">
+                <div class="vigil-card-header">
+                    <div class="vigil-card-title">Live Intrusion Feed</div>
+                    <div class="vigil-card-tag" id="alert-count-tag">Loading events...</div>
+                </div>
+                <div id="alert-feed-list">
+                    <div
+                        style="color:var(--zinc-500);font-family:var(--font-mono);font-size:0.75rem;padding:1.5rem 0;text-align:center;">
+                        Connecting to Alert Feed API...
+                    </div>
+                </div>
+                <a href="/dashboard" class="ops-link-banner">
+                    <div>
+                        <div class="ops-link-text">Launch Threat Operations Console &rarr;</div>
+                        <div class="ops-link-sub">Full packet inspection, live filtering, and quarantine actions</div>
+                    </div>
+                    <span style="color:#FFFFFF;font-size:1.3rem;">&rarr;</span>
+                </a>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- SECTION 4: OPERATIONS & FORECASTING -->
+        <section class="content-section" id="section-operations">
+            <div class="section-eyebrow">&sect; 03 &mdash; Operations Console</div>
+            <h2 class="section-title">Threat Forecasting &amp; SOAR</h2>
+            <p class="section-desc">Predictive 24-hour threat horizon modeling with automated SOAR playbook
+                recommendations, powered by the VIGIL spatial forecasting engine.</p>
+
+            <div class="cards-grid-2">
+                <div class="vigil-card">
+                    <div class="vigil-card-header">
+                        <div class="vigil-card-title">24h Threat Horizon Projection</div>
+                        <div class="vigil-card-tag" id="forecast-risk-tag">RISK SCORE: &mdash;</div>
+                    </div>
+                    <div style="position:relative;height:240px;width:100%;">
+                        <canvas id="forecast-mini-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="vigil-card">
+                    <div class="vigil-card-header">
+                        <div class="vigil-card-title">Recommended SOAR Mitigations</div>
+                        <div class="vigil-card-tag">Automated Mitigation</div>
+                    </div>
+                    <div id="soar-playbooks-list" style="display:flex;flex-direction:column;gap:0.75rem;">
+                        <div
+                            style="color:var(--zinc-500);font-family:var(--font-mono);font-size:0.75rem;padding:1rem 0;">
+                            Loading playbooks...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <a href="/dashboard" class="ops-link-banner" style="margin-top:1.5rem;">
+                <div>
+                    <div class="ops-link-text">Open Full Interactive Operations Workspace &rarr;</div>
+                    <div class="ops-link-sub">24h Forecasting &bull; Real-Time Stream &bull; MITRE Kill Chain &bull;
+                        Spatial Network Topology</div>
+                </div>
+                <span style="color:#FFFFFF;font-size:1.3rem;">&rarr;</span>
+            </a>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- SECTION 5: MODEL PERFORMANCE -->
+        <section class="content-section" id="section-models">
+            <div class="section-eyebrow">&sect; 04 &mdash; Ensemble Performance</div>
+            <h2 class="section-title">Classifier Specifications</h2>
+            <p class="section-desc">Benchmark performance against CIC-IDS2017 &amp; Kitsune datasets. Multi-model
+                consensus prevents single-model false positives.</p>
+
+            <div class="cards-grid-4">
+                <div class="prism-capsule-card">
+                    <div>
+                        <div class="cap-prism-pill">
+                            <span class="capsule-pulse-dot" style="width:5px;height:5px;"></span>
+                            <span>RF &bull; 200 TREES</span>
+                        </div>
+                        <div class="cap-title">Random Forest</div>
+                        <div class="model-accuracy">99.8%</div>
+                        <div class="cap-desc">Ensemble bagging architecture with TreeExplainer SHAP values. Provides
+                            per-feature attribution on every classified flow.</div>
+                    </div>
+                    <div class="cap-stat-capsule">
+                        <span class="stat-indicator-bar"></span>
+                        <span>LATENCY: 26.1ms / 1k flows</span>
+                    </div>
+                </div>
+
+                <div class="prism-capsule-card">
+                    <div>
+                        <div class="cap-prism-pill">
+                            <span class="capsule-pulse-dot" style="width:5px;height:5px;"></span>
+                            <span>XGB &bull; DEPTH-6</span>
+                        </div>
+                        <div class="cap-title">XGBoost</div>
+                        <div class="model-accuracy">99.5%</div>
+                        <div class="cap-desc">High-throughput gradient boosted trees. Optimized histogram binning for
+                            sub-millisecond line-rate classification.</div>
+                    </div>
+                    <div class="cap-stat-capsule">
+                        <span class="stat-indicator-bar"></span>
+                        <span>LATENCY: 2.56ms / 1k flows</span>
+                    </div>
+                </div>
+
+                <div class="prism-capsule-card">
+                    <div>
+                        <div class="cap-prism-pill">
+                            <span class="capsule-pulse-dot" style="width:5px;height:5px;"></span>
+                            <span>RNN &bull; 64-UNIT</span>
+                        </div>
+                        <div class="cap-title">LSTM Sequence</div>
+                        <div class="model-accuracy">98.9%</div>
+                        <div class="cap-desc">Temporal recurrent memory cells capturing multi-stage adversary sequences
+                            and slow brute force probes.</div>
+                    </div>
+                    <div class="cap-stat-capsule">
+                        <span class="stat-indicator-bar"></span>
+                        <span>LATENCY: 6.89ms / 1k flows</span>
+                    </div>
+                </div>
+
+                <div class="prism-capsule-card">
+                    <div>
+                        <div class="cap-prism-pill">
+                            <span class="capsule-pulse-dot" style="width:5px;height:5px;"></span>
+                            <span>AE &bull; DAMPED</span>
+                        </div>
+                        <div class="cap-title">KitNET Autoencoder</div>
+                        <div class="model-accuracy">&tau; = 1.63</div>
+                        <div class="cap-desc">Unsupervised ensemble of autoencoders. Flags previously unknown zero-day
+                            anomalies based on reconstruction RMSE.</div>
+                    </div>
+                    <div class="cap-stat-capsule">
+                        <span class="stat-indicator-bar"></span>
+                        <span>ANOMALY AUROC: 0.778</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- SECTION 6: XAI & EXPLAINABILITY -->
+        <section class="content-section" id="section-explain">
+            <div class="section-eyebrow">&sect; 05 &mdash; Explainability (XAI)</div>
+            <h2 class="section-title">Real-Time SHAP Attribution</h2>
+            <p class="section-desc">Transparent AI decisions. Solid white bars indicate features contributing to attack
+                diagnosis; dim bars indicate baseline flow behavior.</p>
+
+            <div class="cards-grid-2">
+                <div class="vigil-card">
+                    <div class="vigil-card-header">
+                        <div class="vigil-card-title">SHAP Feature Attribution</div>
+                        <div class="vigil-card-tag">Top Contributing Features</div>
+                    </div>
+                    <div id="shap-display">
+                        <div class="shap-row-mini">
+                            <div class="shap-label-mini">Destination Port</div>
+                            <div class="shap-track-mini">
+                                <div class="shap-bar-pos-mini" style="width:92%"></div>
+                            </div>
+                            <div class="shap-val-mini">+0.92</div>
+                        </div>
+                        <div class="shap-row-mini">
+                            <div class="shap-label-mini">Idle Mean Duration</div>
+                            <div class="shap-track-mini">
+                                <div class="shap-bar-pos-mini" style="width:81%"></div>
+                            </div>
+                            <div class="shap-val-mini">+0.81</div>
+                        </div>
+                        <div class="shap-row-mini">
+                            <div class="shap-label-mini">Max Packet Length</div>
+                            <div class="shap-track-mini">
+                                <div class="shap-bar-neg-mini" style="width:70%"></div>
+                            </div>
+                            <div class="shap-val-mini">-0.70</div>
+                        </div>
+                        <div class="shap-row-mini">
+                            <div class="shap-label-mini">Flow Duration</div>
+                            <div class="shap-track-mini">
+                                <div class="shap-bar-pos-mini" style="width:58%"></div>
+                            </div>
+                            <div class="shap-val-mini">+0.58</div>
+                        </div>
+                        <div class="shap-row-mini">
+                            <div class="shap-label-mini">SYN Flag Count</div>
+                            <div class="shap-track-mini">
+                                <div class="shap-bar-pos-mini" style="width:46%"></div>
+                            </div>
+                            <div class="shap-val-mini">+0.46</div>
+                        </div>
+                        <div class="shap-row-mini">
+                            <div class="shap-label-mini">ACK Flag Count</div>
+                            <div class="shap-track-mini">
+                                <div class="shap-bar-neg-mini" style="width:38%"></div>
+                            </div>
+                            <div class="shap-val-mini">-0.38</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="vigil-card">
+                    <div class="vigil-card-header">
+                        <div class="vigil-card-title">Decision Attribution Context</div>
+                        <div class="vigil-card-tag">Sample Event</div>
+                    </div>
+                    <div style="font-family:var(--font-mono);font-size:0.78rem;line-height:2.2;">
+                        <div
+                            style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:0.4rem;">
+                            <span style="color:var(--zinc-400);">Predicted Threat Class</span>
+                            <span style="color:#FFFFFF;font-weight:700;">PortScan / Reconnaissance</span>
+                        </div>
+                        <div
+                            style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:0.4rem;">
+                            <span style="color:var(--zinc-400);">Ensemble Consensus</span>
+                            <span style="color:#FFFFFF;font-weight:600;">4 / 4 Models in Agreement</span>
+                        </div>
+                        <div
+                            style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:0.4rem;">
+                            <span style="color:var(--zinc-400);">Classifier Confidence</span>
+                            <span style="color:#FFFFFF;font-weight:600;">99.2%</span>
+                        </div>
+                        <div
+                            style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:0.4rem;">
+                            <span style="color:var(--zinc-400);">KitNET Anomaly Score</span>
+                            <span style="color:#FFFFFF;font-weight:600;">2.411 (&gt; &tau; = 1.627)</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;">
+                            <span style="color:var(--zinc-400);">MITRE ATT&amp;CK Tactic</span>
+                            <span style="color:var(--zinc-200);font-weight:600;">TA0043 &bull; Reconnaissance</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- SECTION 7: SPATIAL NETWORK TOPOLOGY -->
+        <section class="content-section" id="section-topology">
+            <div class="section-eyebrow">&sect; 06 &mdash; Attack Surface &amp; Topology</div>
+            <h2 class="section-title">Spatial Network Graph</h2>
+            <p class="section-desc">Interactive topology graph mapping pivot paths and compromised lateral assets.
+                Real-time telemetry fetched from the VIGIL graph engine.</p>
+
+            <div class="cards-grid-topo">
+                <div class="vigil-card">
+                    <div class="vigil-card-header">
+                        <div class="vigil-card-title">Lateral Movement Topology</div>
+                        <div class="vigil-card-tag" id="topo-summary-tag">Loading nodes...</div>
+                    </div>
+                    <canvas id="home-topology-canvas"></canvas>
+                    <div
+                        style="display:flex; gap:1.6rem; justify-content:center; margin-top:0.85rem; font-family:var(--font-mono); font-size:0.7rem; color:var(--zinc-400);">
+                        <span style="display:flex; align-items:center; gap:0.45rem;"><span
+                                style="width:8px; height:8px; border-radius:50%; background:#52525B; display:inline-block; border:1px solid rgba(255,255,255,0.4);"></span>
+                            Normal</span>
+                        <span style="display:flex; align-items:center; gap:0.45rem;"><span
+                                style="width:8px; height:8px; border-radius:50%; background:#A1A1AA; display:inline-block;"></span>
+                            At Risk</span>
+                        <span style="display:flex; align-items:center; gap:0.45rem;"><span
+                                style="width:8px; height:8px; border-radius:50%; background:#FFFFFF; display:inline-block; box-shadow:0 0 6px #fff;"></span>
+                            Compromised / C2</span>
+                        <span style="display:flex; align-items:center; gap:0.45rem;"><span
+                                style="width:8px; height:8px; border-radius:50%; border:1px dashed #FFFFFF; display:inline-block;"></span>
+                            Isolated</span>
+                    </div>
+                </div>
+
+                <div class="vigil-card">
+                    <div class="vigil-card-header">
+                        <div class="vigil-card-title">Node Inspector</div>
+                        <div class="vigil-card-tag" id="home-insp-status">SELECT HOST</div>
+                    </div>
+                    <div style="font-family:var(--font-mono); font-size:0.78rem; line-height:2.2;">
+                        <div style="border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:0.4rem;">
+                            <div
+                                style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em;">
+                                Host Label</div>
+                            <div id="home-insp-label" style="color:#FFFFFF; font-weight:600; font-size:0.92rem;">Select
+                                node from graph</div>
+                        </div>
+                        <div
+                            style="border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:0.4rem; margin-top:0.3rem;">
+                            <div
+                                style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em;">
+                                IP Address</div>
+                            <div id="home-insp-ip" style="color:#FFFFFF; font-weight:600;">&mdash;</div>
+                        </div>
+                        <div
+                            style="border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:0.4rem; margin-top:0.3rem;">
+                            <div
+                                style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em;">
+                                Network Zone</div>
+                            <div id="home-insp-zone" style="color:var(--zinc-200);">&mdash;</div>
+                        </div>
+                        <div style="margin-top:0.3rem;">
+                            <div
+                                style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em;">
+                                Telemetry &amp; Alerts</div>
+                            <div id="home-insp-alerts" style="color:var(--zinc-300);">&mdash;</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- FOOTER -->
+        <footer class="vigil-footer">
+            <div>
+                <div class="footer-brand">VIGIL</div>
+                <div style="margin-top:0.3rem;">Explainable AI Network Intrusion Detection &amp; Spatial Threat
+                    Intelligence</div>
+            </div>
+            <div class="footer-links">
+                <a href="#section-overview">Overview</a>
+                <a href="#section-threats">Threats</a>
+                <a href="#section-operations">Operations</a>
+                <a href="#section-topology">Topology</a>
+                <a href="/dashboard">Console</a>
+                <a href="/docs" target="_blank">API Docs</a>
+            </div>
+            <div class="footer-status">
+                <div class="footer-dot"></div>
+                <span id="footer-api-status">API ONLINE</span>
+            </div>
+        </footer>
+
+    </div><!-- end .page-content -->
+
+    <!-- Three.js Monochromatic 3D Scene Script -->
+    <script>
+        let scene, camera, renderer;
+        let crystalCore, triangleCage, ringGroup, ring1, ring2, ring3, ringMat1, ringMat2, ringMat3, particleField, sideParticleField, wideStarfield, gridFloor;
+        let keyLightRef = null, fillLightRef = null;
+        let mouseX = 0, mouseY = 0;
+        let halfWidth = window.innerWidth / 2, halfHeight = window.innerHeight / 2;
+
+        // Interactive Animation Modes
+        const ANIMATION_MODES = {
+            refraction: { camZ: 12.2, speed: 1.0, light: 3.2, roughness: 0.015, transmission: 0.985 },
+            kinetic: { camZ: 10.8, speed: 2.8, light: 3.8, roughness: 0.02, transmission: 0.98 },
+            core: { camZ: 7.5, speed: 0.7, light: 4.2, roughness: 0.01, transmission: 0.99 },
+            caustics: { camZ: 10.2, speed: 1.5, light: 5.5, roughness: 0.025, transmission: 0.97 },
+            deepfield: { camZ: 16.5, speed: 1.2, light: 2.8, roughness: 0.025, transmission: 0.98 }
+        };
+
+        let currentMode = 'refraction';
+        let targetCamZ = 12.2;
+        let targetSpeed = 1.0;
+        let currentSpeed = 1.0;
+        let targetLight = 3.2;
+
+        function setAnimationMode(modeKey) {
+            const config = ANIMATION_MODES[modeKey];
+            if (!config) return;
+            currentMode = modeKey;
+            targetCamZ = config.camZ;
+            targetSpeed = config.speed;
+            targetLight = config.light;
+
+            // Dynamically modulate optical liquid glass materials
+            if (ringMat1 && ringMat2 && ringMat3) {
+                ringMat1.roughness = config.roughness;
+                ringMat1.transmission = config.transmission;
+                ringMat2.roughness = config.roughness + 0.008;
+                ringMat2.transmission = config.transmission - 0.008;
+                ringMat3.roughness = Math.max(0.01, config.roughness - 0.008);
+                ringMat3.transmission = Math.min(0.99, config.transmission + 0.008);
+            }
+        }
+
+        function initMono3D() {
+            const canvas = document.getElementById('hero-3d-canvas');
+            if (!canvas) return;
+
+            let w = window.innerWidth;
+            let h = window.innerHeight;
+            halfWidth = w / 2;
+            halfHeight = h / 2;
+
+            scene = new THREE.Scene();
+            scene.fog = null;
+
+            camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
+            camera.position.set(0, 0, targetCamZ);
+
+            renderer = new THREE.WebGLRenderer({
+                canvas: canvas,
+                alpha: true,
+                antialias: true,
+                powerPreference: "high-performance"
+            });
+            renderer.setSize(w, h);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setClearColor(0x000000, 0);
+
+            // Procedural Obsidian Studio Environment Map for Physical Optical Liquid Glass Refraction
+            function createStudioEnvMap(renderer) {
+                const pmrem = new THREE.PMREMGenerator(renderer);
+                pmrem.compileEquirectangularShader();
+
+                const c = document.createElement('canvas');
+                c.width = 512;
+                c.height = 256;
+                const ctx = c.getContext('2d');
+
+                // Rich obsidian studio background
+                ctx.fillStyle = '#06060a';
+                ctx.fillRect(0, 0, 512, 256);
+
+                // Overhead softbox light (VisionOS top specular sheen)
+                const topGrad = ctx.createLinearGradient(0, 0, 0, 95);
+                topGrad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+                topGrad.addColorStop(0.35, 'rgba(235, 240, 255, 0.65)');
+                topGrad.addColorStop(1, 'rgba(6, 6, 10, 0)');
+                ctx.fillStyle = topGrad;
+                ctx.fillRect(0, 0, 512, 95);
+
+                // Left flank softbox (accentuates the liquid curvature on the left)
+                const leftG = ctx.createRadialGradient(90, 128, 0, 90, 128, 90);
+                leftG.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+                leftG.addColorStop(0.4, 'rgba(200, 215, 245, 0.35)');
+                leftG.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                ctx.fillStyle = leftG;
+                ctx.beginPath();
+                ctx.arc(90, 128, 90, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Right flank softbox (accentuates the liquid curvature on the right)
+                const rightG = ctx.createRadialGradient(422, 128, 0, 422, 128, 90);
+                rightG.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+                rightG.addColorStop(0.4, 'rgba(230, 215, 250, 0.35)');
+                rightG.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                ctx.fillStyle = rightG;
+                ctx.beginPath();
+                ctx.arc(422, 128, 90, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Horizontal optical horizon band (creates crisp VisionOS liquid horizon refraction)
+                const hGrad = ctx.createLinearGradient(0, 122, 0, 134);
+                hGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                hGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.7)');
+                hGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = hGrad;
+                ctx.fillRect(0, 122, 512, 12);
+
+                const tex = new THREE.CanvasTexture(c);
+                tex.mapping = THREE.EquirectangularReflectionMapping;
+                const target = pmrem.fromEquirectangular(tex);
+                tex.dispose();
+                pmrem.dispose();
+                return target.texture;
+            }
+            scene.environment = createStudioEnvMap(renderer);
+
+            // Ambient & Directional Lighting
+            const ambient = new THREE.AmbientLight(0xffffff, 0.75);
+            scene.add(ambient);
+
+            const keyLight = new THREE.DirectionalLight(0xffffff, 3.2);
+            keyLight.position.set(7, 9, 8);
+            scene.add(keyLight);
+            keyLightRef = keyLight;
+
+            const fillLight = new THREE.DirectionalLight(0xa1a1aa, 1.6);
+            fillLight.position.set(-7, -5, -5);
+            scene.add(fillLight);
+            fillLightRef = fillLight;
+
+            const coreLight = new THREE.PointLight(0xffffff, 2.5, 20);
+            coreLight.position.set(0, 0, 0);
+            scene.add(coreLight);
+
+            // 1. Scaled Precision Crystalline Core (Solid dark metallic sphere inside glass rings)
+            const coreGeo = new THREE.IcosahedronGeometry(1.95, 0);
+            const coreMat = new THREE.MeshStandardMaterial({
+                color: 0x141416,
+                roughness: 0.15,
+                metalness: 0.95,
+                wireframe: false
+            });
+            crystalCore = new THREE.Mesh(coreGeo, coreMat);
+            scene.add(crystalCore);
+
+            // 2. Scaled Grey Triangle Outline Cage (Radius: 2.65, Subtle Architectural Titanium Grey)
+            const triangleGeo = new THREE.IcosahedronGeometry(2.65, 0);
+            const triangleMat = new THREE.MeshBasicMaterial({
+                color: 0x71717a,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.45
+            });
+            triangleCage = new THREE.Mesh(triangleGeo, triangleMat);
+            scene.add(triangleCage);
+
+            // 3. Precision Square Optical Refractive Glass Rings
+            // True square cross-section (radial width = axial depth = size) with micro-chamfered specular edges
+            function createSquareRingGeo(centerRadius, size, segments = 160) {
+                const innerRadius = centerRadius - size / 2;
+                const outerRadius = centerRadius + size / 2;
+                const shape = new THREE.Shape();
+                shape.absarc(0, 0, outerRadius, 0, Math.PI * 2, false);
+                const hole = new THREE.Path();
+                hole.absarc(0, 0, innerRadius, 0, Math.PI * 2, true);
+                shape.holes.push(hole);
+
+                // Subtle micro-chamfer for specular edge highlights without losing the square profile
+                const bevel = Math.min(0.02, size * 0.08);
+                const extrudeSettings = {
+                    depth: size - bevel * 2,
+                    bevelEnabled: true,
+                    bevelThickness: bevel,
+                    bevelSize: bevel,
+                    bevelOffset: -bevel,
+                    bevelSegments: 3,
+                    curveSegments: segments
+                };
+
+                const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+                geo.center();
+                geo.computeVertexNormals();
+                return geo;
+            }
+
+            // Optical Refractive Glass Material Generator with Prism Dispersion & TIR
+            function createRefractiveGlassMaterial(config = {}) {
+                const mat = new THREE.MeshPhysicalMaterial({
+                    color: config.color || 0xffffff,
+                    transmission: config.transmission !== undefined ? config.transmission : 0.985,
+                    opacity: 1.0,
+                    transparent: true,
+                    roughness: config.roughness !== undefined ? config.roughness : 0.015,
+                    metalness: 0.0,
+                    ior: 1.58,
+                    thickness: config.thickness || 1.2,
+                    attenuationColor: new THREE.Color(0xf2f7ff),
+                    attenuationDistance: 3.2,
+                    clearcoat: 1.0,
+                    clearcoatRoughness: 0.01,
+                    specularIntensity: 2.2,
+                    specularColor: new THREE.Color(0xffffff),
+                    envMapIntensity: 2.5,
+                    side: THREE.DoubleSide
+                });
+
+                // Prism Chromatic Dispersion & Planar Facet Specular GLSL Shader
+                mat.userData.liquidUniforms = {
+                    uLiquidTime: { value: 0 },
+                    uLiquidIntensity: { value: 1.0 }
+                };
+
+                mat.onBeforeCompile = (shader) => {
+                    shader.uniforms.uLiquidTime = mat.userData.liquidUniforms.uLiquidTime;
+                    shader.uniforms.uLiquidIntensity = mat.userData.liquidUniforms.uLiquidIntensity;
+
+                    shader.fragmentShader = `
+                        uniform float uLiquidTime;
+                        uniform float uLiquidIntensity;
+
+                        // Pure Optical Cauchy Spectral Dispersion Formula
+                        vec3 getPrismSpectral(float phase) {
+                            vec3 col = 0.5 + 0.5 * cos(6.283185 * (phase + vec3(0.0, 0.33, 0.67)));
+                            return mix(vec3(1.0), col, 0.48); // Vibrant prism refraction balance
+                        }
+                    ` + shader.fragmentShader;
+
+                    shader.fragmentShader = shader.fragmentShader.replace(
+                        '#include <dithering_fragment>',
+                        `#include <dithering_fragment>
+                        {
+                            vec3 vDir = normalize(-vViewPosition);
+                            float NdotV = abs(dot(normal, vDir));
+                            // High-index optical Fresnel reflection on square facets
+                            float fresnelRim = pow(1.0 - NdotV, 2.4);
+
+                            // Dynamic prismatic dispersion phase along square normals
+                            float phase = (1.0 - NdotV) * 2.6 + dot(normal, vec3(0.58, 0.52, 0.38)) + uLiquidTime * 0.22;
+                            vec3 spectralGlint = getPrismSpectral(phase);
+
+                            // Specular glint along planar square faces & micro-chamfers
+                            vec3 lightDir = normalize(vec3(0.65, 0.85, 0.70));
+                            float specularGlint = pow(max(0.0, dot(reflect(-vDir, normal), lightDir)), 22.0) * 1.8;
+
+                            // Total Internal Reflection (TIR) & Planar Refractive Radiance
+                            float totalPrism = (fresnelRim * 2.2 + specularGlint * 1.0) * uLiquidIntensity;
+                            gl_FragColor.rgb += spectralGlint * totalPrism;
+                        }
+                        `
+                    );
+                };
+
+                return mat;
+            }
+
+            ringGroup = new THREE.Group();
+
+            // Layer 1 (Innermost): Compact Optical Refractive Glass Square Ring (Radius: 3.45, Size: 0.28 x 0.28)
+            const ringGeo3 = createSquareRingGeo(3.45, 0.28, 160);
+            ringMat3 = createRefractiveGlassMaterial({
+                color: 0xffffff,
+                roughness: 0.015,
+                transmission: 0.985,
+                thickness: 1.1
+            });
+            ring3 = new THREE.Mesh(ringGeo3, ringMat3);
+            const ringEdges3 = new THREE.LineSegments(
+                new THREE.EdgesGeometry(ringGeo3, 20),
+                new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending })
+            );
+            ring3.add(ringEdges3);
+            ring3.rotation.z = Math.PI / 6;
+            ring3.rotation.x = Math.PI / 4;
+            ringGroup.add(ring3);
+
+            // Layer 2 (Middle): Concentric Optical Refractive Glass Square Ring (Radius: 4.25, Size: 0.36 x 0.36)
+            const ringGeo1 = createSquareRingGeo(4.25, 0.36, 160);
+            ringMat1 = createRefractiveGlassMaterial({
+                color: 0xf4f7ff,
+                roughness: 0.018,
+                transmission: 0.98,
+                thickness: 1.4
+            });
+            ring1 = new THREE.Mesh(ringGeo1, ringMat1);
+            const ringEdges1 = new THREE.LineSegments(
+                new THREE.EdgesGeometry(ringGeo1, 20),
+                new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.34, blending: THREE.AdditiveBlending })
+            );
+            ring1.add(ringEdges1);
+            ring1.rotation.x = Math.PI / 3;
+            ringGroup.add(ring1);
+
+            // Layer 3 (Outer): Outer Optical Refractive Glass Square Ring (Radius: 5.05, Size: 0.30 x 0.30)
+            const ringGeo2 = createSquareRingGeo(5.05, 0.30, 160);
+            ringMat2 = createRefractiveGlassMaterial({
+                color: 0xeef3fc,
+                roughness: 0.02,
+                transmission: 0.975,
+                thickness: 1.2
+            });
+            ring2 = new THREE.Mesh(ringGeo2, ringMat2);
+            const ringEdges2 = new THREE.LineSegments(
+                new THREE.EdgesGeometry(ringGeo2, 20),
+                new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.32, blending: THREE.AdditiveBlending })
+            );
+            ring2.add(ringEdges2);
+            ring2.rotation.y = Math.PI / 4;
+            ringGroup.add(ring2);
+
+            scene.add(ringGroup);
+
+            // 3. Multi-Tier Full-Screen Monochromatic White Particle Field
+            // Procedurally generated soft circular particle texture for optical glow
+            function createParticleTexture() {
+                const pCanvas = document.createElement('canvas');
+                pCanvas.width = 64;
+                pCanvas.height = 64;
+                const pCtx = pCanvas.getContext('2d');
+                const grad = pCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
+                grad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+                grad.addColorStop(0.2, 'rgba(255, 255, 255, 0.95)');
+                grad.addColorStop(0.5, 'rgba(255, 255, 255, 0.40)');
+                grad.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
+                pCtx.fillStyle = grad;
+                pCtx.beginPath();
+                pCtx.arc(32, 32, 32, 0, Math.PI * 2);
+                pCtx.fill();
+                const tex = new THREE.CanvasTexture(pCanvas);
+                tex.needsUpdate = true;
+                return tex;
+            }
+            const particleTexture = createParticleTexture();
+
+            // Layer 3A: Wide Deep-Field Starfield (expands across the far background)
+            const wideCount = 1100;
+            const widePositions = new Float32Array(wideCount * 3);
+            for (let i = 0; i < wideCount * 3; i += 3) {
+                widePositions[i] = (Math.random() - 0.5) * 80;      // Vast lateral spread (X: -40 to +40)
+                widePositions[i + 1] = (Math.random() - 0.5) * 44;  // Vertical spread (Y: -22 to +22)
+                widePositions[i + 2] = -4 - Math.random() * 32;     // Depth behind core (Z: -4 to -36)
+            }
+            const wideGeo = new THREE.BufferGeometry();
+            wideGeo.setAttribute('position', new THREE.BufferAttribute(widePositions, 3));
+            const wideMat = new THREE.PointsMaterial({
+                color: 0xffffff,
+                map: particleTexture,
+                size: 0.075,
+                transparent: true,
+                opacity: 0.75,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+            wideStarfield = new THREE.Points(wideGeo, wideMat);
+            scene.add(wideStarfield);
+
+            // Layer 3B: Lateral Side Particles (expanding white particles across left & right flanks)
+            const sideCount = 950;
+            const sidePositions = new Float32Array(sideCount * 3);
+
+            for (let i = 0; i < sideCount * 3; i += 3) {
+                const sideChoice = Math.random();
+                let xVal;
+                if (sideChoice < 0.45) {
+                    // Left flank: densely populating the left side of the screen
+                    xVal = -6.2 - Math.random() * 26.0; // X: -6.2 to -32.2
+                } else if (sideChoice < 0.90) {
+                    // Right flank: densely populating the right side of the screen
+                    xVal = 6.2 + Math.random() * 26.0;  // X: +6.2 to +32.2
+                } else {
+                    // Bridge floating across the full width
+                    xVal = (Math.random() - 0.5) * 64.0;
+                }
+                const yVal = (Math.random() - 0.5) * 28.0;   // Y: -14 to +14
+                const zVal = 2.5 - Math.random() * 16.0;     // Z: +2.5 to -13.5 (comfortably in front of camera)
+
+                sidePositions[i] = xVal;
+                sidePositions[i + 1] = yVal;
+                sidePositions[i + 2] = zVal;
+            }
+
+            const sideGeo = new THREE.BufferGeometry();
+            sideGeo.setAttribute('position', new THREE.BufferAttribute(sidePositions, 3));
+            const sideMat = new THREE.PointsMaterial({
+                color: 0xffffff,
+                map: particleTexture,
+                size: 0.085,
+                transparent: true,
+                opacity: 0.88,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+            sideParticleField = new THREE.Points(sideGeo, sideMat);
+            scene.add(sideParticleField);
+
+            // Layer 3C: Concentric Swirling Core Cloud (orbiting around the central rings)
+            const particleCount = 420;
+            const particlePositions = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                // Expanding orbital radius with lateral spread to organically connect to the sides
+                const r = 3.2 + Math.random() * 4.8;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+                const xSpread = 1.35; // Natural lateral spread
+                particlePositions[i] = r * Math.sin(phi) * Math.cos(theta) * xSpread;
+                particlePositions[i + 1] = r * Math.sin(phi) * Math.sin(theta);
+                particlePositions[i + 2] = r * Math.cos(phi);
+            }
+
+            const particleGeo = new THREE.BufferGeometry();
+            particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+            const particleMat = new THREE.PointsMaterial({
+                color: 0xffffff,
+                map: particleTexture,
+                size: 0.08,
+                transparent: true,
+                opacity: 0.92,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+            particleField = new THREE.Points(particleGeo, particleMat);
+            scene.add(particleField);
+
+            // 4. Perspective Floor Grid
+            gridFloor = new THREE.GridHelper(60, 48, 0x52525b, 0x27272a);
+            gridFloor.position.y = -6.8;
+            if (gridFloor.material) {
+                gridFloor.material.transparent = true;
+                gridFloor.material.opacity = 0.18;
+            }
+            scene.add(gridFloor);
+
+            // Full-Window Parallax Tracking
+            window.addEventListener('mousemove', (e) => {
+                mouseX = (e.clientX - halfWidth) * 0.0016;
+                mouseY = (e.clientY - halfHeight) * 0.0016;
+            });
+
+            // Dynamic Window Resize Listener
+            window.addEventListener('resize', () => {
+                w = window.innerWidth;
+                h = window.innerHeight;
+                halfWidth = w / 2;
+                halfHeight = h / 2;
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w, h);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            });
+
+            render3DLoop();
+        }
+
+        function render3DLoop() {
+            requestAnimationFrame(render3DLoop);
+
+            camera.position.z += (targetCamZ - camera.position.z) * 0.045;
+            currentSpeed += (targetSpeed - currentSpeed) * 0.05;
+            if (keyLightRef) {
+                keyLightRef.intensity += (targetLight - keyLightRef.intensity) * 0.05;
+            }
+
+            if (crystalCore) {
+                crystalCore.rotation.y += 0.005 * currentSpeed;
+                crystalCore.rotation.x += 0.002 * currentSpeed;
+
+                if (triangleCage) {
+                    triangleCage.rotation.x += 0.003 * currentSpeed;
+                    triangleCage.rotation.y -= 0.0025 * currentSpeed;
+                }
+
+                ringGroup.rotation.y += 0.0055 * currentSpeed;
+                ringGroup.rotation.x += 0.0025 * currentSpeed;
+                if (ring1) ring1.rotation.z += 0.002 * currentSpeed;
+                if (ring2) ring2.rotation.z -= 0.002 * currentSpeed;
+                if (ring3) {
+                    ring3.rotation.z += 0.0032 * currentSpeed;
+                    ring3.rotation.y -= 0.0018 * currentSpeed;
+                }
+
+                const pTime = performance.now() * 0.001;
+
+                // Update liquid glass optical shader uniforms
+                const liquidLightScale = targetLight / 3.2;
+                if (ringMat1 && ringMat1.userData.liquidUniforms) {
+                    ringMat1.userData.liquidUniforms.uLiquidTime.value = pTime * currentSpeed;
+                    ringMat1.userData.liquidUniforms.uLiquidIntensity.value = liquidLightScale;
+                }
+                if (ringMat2 && ringMat2.userData.liquidUniforms) {
+                    ringMat2.userData.liquidUniforms.uLiquidTime.value = pTime * currentSpeed;
+                    ringMat2.userData.liquidUniforms.uLiquidIntensity.value = liquidLightScale;
+                }
+                if (ringMat3 && ringMat3.userData.liquidUniforms) {
+                    ringMat3.userData.liquidUniforms.uLiquidTime.value = pTime * currentSpeed;
+                    ringMat3.userData.liquidUniforms.uLiquidIntensity.value = liquidLightScale;
+                }
+
+                if (particleField) {
+                    particleField.rotation.y += 0.0016 * currentSpeed;
+                    particleField.rotation.x += 0.0006 * currentSpeed;
+                }
+                if (sideParticleField) {
+                    // Smooth, elegant floating drift across lateral flanks without camera clipping
+                    sideParticleField.rotation.y = Math.sin(pTime * 0.12 * currentSpeed) * 0.10;
+                    sideParticleField.rotation.x = Math.cos(pTime * 0.09 * currentSpeed) * 0.05;
+                    sideParticleField.rotation.z += 0.00025 * currentSpeed;
+                    sideParticleField.position.y = Math.sin(pTime * 0.35) * 0.22;
+                    sideParticleField.position.x = Math.cos(pTime * 0.25) * 0.28;
+                }
+                if (wideStarfield) {
+                    wideStarfield.rotation.z += 0.00015 * currentSpeed;
+                    wideStarfield.position.y = Math.sin(pTime * 0.18) * 0.12;
+                }
+
+                camera.position.x += (mouseX * 3.5 - camera.position.x) * 0.05;
+                camera.position.y += (-mouseY * 3.5 - camera.position.y) * 0.05;
+                camera.lookAt(0, 0, 0);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // ==========================================
+        // Smooth Active Navigation Slider & Scroll-Spy
+        // ==========================================
+        function initNavGlassSlider() {
+            const container = document.getElementById('nav-links');
+            const activeBar = document.getElementById('nav-active-bar');
+            if (!container || !activeBar) return;
+
+            const links = Array.from(container.querySelectorAll('.nav-link[data-section]'));
+
+            function moveBarTo(link, animate = true) {
+                if (!link) {
+                    activeBar.style.opacity = '0';
+                    return;
+                }
+                const linkRect = link.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                const inset = 8;
+                const left = linkRect.left - containerRect.left + inset;
+                const width = Math.max(16, linkRect.width - (inset * 2));
+
+                if (!animate) {
+                    const prevTransition = activeBar.style.transition;
+                    activeBar.style.transition = 'none';
+                    activeBar.style.transform = `translate3d(${left}px, 0, 0)`;
+                    activeBar.style.width = `${width}px`;
+                    activeBar.style.opacity = '1';
+                    activeBar.offsetHeight;
+                    activeBar.style.transition = prevTransition;
+                } else {
+                    activeBar.style.transform = `translate3d(${left}px, 0, 0)`;
+                    activeBar.style.width = `${width}px`;
+                    activeBar.style.opacity = '1';
+                }
+            }
+
+            links.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    const secId = link.getAttribute('data-section');
+                    if (secId) {
+                        e.preventDefault();
+                        const target = document.getElementById(secId);
+                        if (target) {
+                            target.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                });
+            });
+
+            const sectionList = ['section-hero', 'section-overview', 'section-threats', 'section-operations', 'section-models', 'section-explain', 'section-topology'];
+            function onScroll() {
+                const scrollY = window.scrollY;
+                let activeId = '';
+                for (let i = 0; i < sectionList.length; i++) {
+                    const el = document.getElementById(sectionList[i]);
+                    if (el) {
+                        const top = el.offsetTop - 140;
+                        if (scrollY >= top) {
+                            activeId = sectionList[i];
+                        }
+                    }
+                }
+                links.forEach(l => {
+                    const match = l.getAttribute('data-section') === activeId;
+                    l.classList.toggle('active', match);
+                    if (match) moveBarTo(l, true);
+                });
+                if (!activeId) {
+                    activeBar.style.opacity = '0';
+                }
+            }
+
+            window.addEventListener('scroll', onScroll, { passive: true });
+            window.addEventListener('resize', () => {
+                const active = container.querySelector('.nav-link.active');
+                if (active) moveBarTo(active, false);
+            });
+
+            setTimeout(() => {
+                onScroll();
+            }, 150);
+        }
+
+        // ==========================================
+        // Parallax Camera Zoom on Scroll
+        // ==========================================
+        function initScrollParallax() {
+            window.addEventListener('scroll', () => {
+                const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+                const frac = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+                targetCamZ = 12.2 - (frac * 4.7);
+            }, { passive: true });
+        }
+
+        // ==========================================
+        // Prism Capsule Toggle Controller (Button & Key 'L')
+        // ==========================================
+        function initLensControls() {
+            const lens = document.getElementById('hero-lens');
+            const lensBtn = document.getElementById('btn-toggle-lens');
+            const label = document.getElementById('lens-btn-label');
+
+            function toggleLens() {
+                if (!lens) return;
+                const isHidden = lens.classList.toggle('hidden');
+                if (label) {
+                    label.textContent = isHidden ? 'CAPSULE: OFF' : 'CAPSULE: ON';
+                }
+                if (lensBtn) {
+                    lensBtn.classList.toggle('active', !isHidden);
+                    lensBtn.classList.toggle('inactive', isHidden);
+                }
+            }
+
+            if (lensBtn) {
+                lensBtn.addEventListener('click', toggleLens);
+            }
+
+            window.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                if (e.key === 'l' || e.key === 'L') {
+                    toggleLens();
+                }
+            });
+        }
+
+        // ==========================================
+        // Zen Mode Toggle (Double-Click Canvas or Key 'H' / 'Z')
+        // ==========================================
+        function initZenMode() {
+            const navbar = document.getElementById('main-navbar');
+
+            function toggleZen() {
+                if (navbar) navbar.classList.toggle('hidden');
+            }
+
+            window.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                if (e.key === 'h' || e.key === 'H' || e.key === 'z' || e.key === 'Z') {
+                    toggleZen();
+                }
+            });
+        }
+
+        // ==========================================
+        // Live API Data Loaders (Strict Monochrome Styling)
+        // ==========================================
+        
+        // ==========================================
+        // Remote Backend & Render Endpoint Resolver
+        // ==========================================
+        function getBackendBaseUrl() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const qApi = urlParams.get('api') || urlParams.get('backend');
+                if (qApi) {
+                    const cleaned = qApi.replace(/\/+$/, '');
+                    localStorage.setItem('vigil_backend_url', cleaned);
+                    return cleaned;
+                }
+                const saved = localStorage.getItem('vigil_backend_url');
+                if (saved) return saved.replace(/\/+$/, '');
+            } catch (e) {}
+            return '';
+        }
+
+        async function loadLiveAlerts() {
+            try {
+                const res = await fetch(`${getBackendBaseUrl()}/alerts?page_size=6&page=1`);
+                if (!res.ok) throw new Error('Alerts fetch failed');
+                const data = await res.json();
+                const list = document.getElementById('alert-feed-list');
+                const countTag = document.getElementById('alert-count-tag');
+                const items = data.items || [];
+                const total = data.total || items.length;
+
+                if (countTag) countTag.textContent = `${total} total alerts recorded`;
+
+                const threatsEl = document.getElementById('kpi-threats');
+                if (threatsEl) threatsEl.textContent = total;
+
+                const zdCount = items.filter(a => a.is_zero_day || (a.severity || '').toLowerCase() === 'critical').length;
+                const zdEl = document.getElementById('kpi-zeroday');
+                if (zdEl) zdEl.textContent = zdCount;
+
+                if (list) {
+                    if (items.length > 0) {
+                        list.innerHTML = items.map(a => {
+                            const sev = (a.severity || '').toLowerCase();
+                            const isCrit = (sev === 'critical' || sev === 'high' || a.is_zero_day);
+                            const badgeCls = isCrit ? 'crit' : (sev === 'medium') ? 'warn' : 'info';
+                            const badgeTxt = (a.severity || 'ALERT').toUpperCase();
+                            const attack = a.attack_class || a.label || 'SUSPICIOUS_FLOW';
+                            const src = a.src_ip || '192.168.1.1';
+                            const dst = a.dst_ip ? ` &rarr; ${a.dst_ip}:${a.dst_port || ''}` : '';
+                            const timeStr = a.timestamp ? new Date(a.timestamp).toLocaleTimeString() : 'Recent';
+                            const conf = a.confidence ? `${(a.confidence * 100).toFixed(1)}%` : '98.5%';
+                            return `
+                                <div class="alert-feed-item">
+                                    <div>
+                                        <div style="display:flex;align-items:center;gap:0.6rem;">
+                                            <span class="alert-badge ${badgeCls}">${badgeTxt}</span>
+                                            <span class="alert-class">${attack.toUpperCase()}</span>
+                                        </div>
+                                        <div style="color:var(--zinc-400);font-size:0.7rem;margin-top:0.25rem;">
+                                            ${src}${dst} &bull; Model: ${a.model_used || 'Ensemble'} &bull; Conf: ${conf}
+                                        </div>
+                                    </div>
+                                    <div class="alert-time">${timeStr}</div>
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        list.innerHTML = '<div style="color:var(--zinc-500);font-family:var(--font-mono);font-size:0.75rem;padding:1rem 0;text-align:center;">No intrusion alerts recorded in current session.</div>';
+                    }
+                }
+            } catch (err) {
+                console.warn('Alert feed error:', err);
+            }
+        }
+
+        async function loadForecastData() {
+            try {
+                const [summaryRes, forecastRes] = await Promise.all([
+                    fetch(`${getBackendBaseUrl()}/forecast/horizons/summary`),
+                    fetch(`${getBackendBaseUrl()}/forecast`)
+                ]);
+
+                let summaryData = null;
+                let forecastData = null;
+                if (summaryRes.ok) summaryData = await summaryRes.json();
+                if (forecastRes.ok) forecastData = await forecastRes.json();
+
+                // 1. Render Forecast Chart (Strict Monochrome)
+                const chartCanvas = document.getElementById('forecast-mini-chart');
+                if (chartCanvas && window.Chart && summaryData) {
+                    const riskTag = document.getElementById('forecast-risk-tag');
+                    if (riskTag && summaryData.overall_risk_score !== undefined) {
+                        const pct = (summaryData.overall_risk_score * 100).toFixed(1);
+                        riskTag.textContent = `RISK SCORE: ${pct}% (${summaryData.threat_level || 'HIGH'})`;
+                    }
+
+                    const horizons = summaryData.horizons || {};
+                    const labels = ['Now', '+1h', '+6h', '+24h'];
+                    const currentScore = (summaryData.overall_risk_score || 0.62) * 100;
+                    const h1 = horizons.T_plus_1h ? (horizons.T_plus_1h.probability * 100) : 83.6;
+                    const h6 = horizons.T_plus_6h ? (horizons.T_plus_6h.probability * 100) : 89.8;
+                    const h24 = horizons.T_plus_24h ? (horizons.T_plus_24h.probability * 100) : 95.0;
+                    const points = [currentScore, h1, h6, h24];
+
+                    new Chart(chartCanvas, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Threat Probability (%)',
+                                data: points,
+                                borderColor: '#FFFFFF',
+                                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                                borderWidth: 2,
+                                pointBackgroundColor: '#FFFFFF',
+                                pointBorderColor: '#050505',
+                                pointBorderWidth: 2,
+                                pointRadius: 4.5,
+                                pointHoverRadius: 6,
+                                tension: 0.35,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: 'rgba(10, 10, 14, 0.95)',
+                                    titleColor: '#FFFFFF',
+                                    titleFont: { family: 'Space Grotesk', size: 12, weight: 'bold' },
+                                    bodyColor: '#D4D4D8',
+                                    bodyFont: { family: 'JetBrains Mono', size: 11 },
+                                    borderColor: 'rgba(255, 255, 255, 0.22)',
+                                    borderWidth: 1,
+                                    padding: 10,
+                                    callbacks: {
+                                        label: (context) => ` Threat Probability: ${context.parsed.y.toFixed(1)}%`
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                    ticks: { color: 'rgba(255, 255, 255, 0.45)', font: { family: 'JetBrains Mono', size: 10 } }
+                                },
+                                y: {
+                                    min: 40,
+                                    max: 100,
+                                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                    ticks: {
+                                        color: 'rgba(255, 255, 255, 0.45)',
+                                        font: { family: 'JetBrains Mono', size: 10 },
+                                        callback: (v) => v + '%'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // 2. Render Recommended SOAR Playbooks (Monochrome)
+                const soarList = document.getElementById('soar-playbooks-list');
+                const actions = (forecastData && forecastData.recommended_actions) ? forecastData.recommended_actions : [];
+                if (soarList) {
+                    if (actions.length > 0) {
+                        soarList.innerHTML = actions.slice(0, 3).map((act, i) => {
+                            const isCrit = (act.priority || '').includes('CRITICAL') || (act.priority || '').includes('P0');
+                            const borderCol = isCrit ? 'rgba(255, 255, 255, 0.28)' : 'rgba(255, 255, 255, 0.12)';
+                            const badgeBg = isCrit ? '#FFFFFF' : 'rgba(255, 255, 255, 0.1)';
+                            const badgeCol = isCrit ? '#000000' : '#FFFFFF';
+                            return `
+                                <div style="padding:0.75rem 0.9rem;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid ${borderCol};display:flex;align-items:flex-start;gap:0.85rem;">
+                                    <div style="width:26px;height:26px;border-radius:4px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:0.7rem;font-weight:700;flex-shrink:0;">
+                                        0${i + 1}
+                                    </div>
+                                    <div style="flex:1;">
+                                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                                            <div style="font-family:var(--font-display);font-size:0.88rem;font-weight:600;color:#FFFFFF;">${act.title || act.id}</div>
+                                            <span style="font-family:var(--font-mono);font-size:0.6rem;padding:0.15rem 0.45rem;border-radius:3px;background:${badgeBg};color:${badgeCol};font-weight:700;">${act.priority || 'P0'}</span>
+                                        </div>
+                                        <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--zinc-400);margin-top:0.25rem;line-height:1.45;">
+                                            ${act.action}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        soarList.innerHTML = `
+                            <div style="padding:0.75rem 0.9rem;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.2);display:flex;align-items:flex-start;gap:0.85rem;">
+                                <div style="width:26px;height:26px;border-radius:4px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:0.7rem;font-weight:700;flex-shrink:0;">01</div>
+                                <div><div style="font-family:var(--font-display);font-size:0.88rem;font-weight:600;color:#FFFFFF;">Automated Perimeter Ingress Block</div><div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--zinc-400);margin-top:0.25rem;">Rate-limit ICMP/SYN packets and isolate port 22/3389 probes</div></div>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (err) {
+                console.warn('Forecast loading error:', err);
+            }
+        }
+
+        // ==========================================
+        // Live Network Topology Loader & Canvas Renderer (Strict Monochrome)
+        // ==========================================
+        let homeTopologyData = null;
+        let homeSelectedNode = null;
+
+        async function loadHomeTopology() {
+            try {
+                const res = await fetch(`${getBackendBaseUrl()}/topology`);
+                if (!res.ok) throw new Error('Topology fetch failed');
+                homeTopologyData = await res.json();
+
+                const tag = document.getElementById('topo-summary-tag');
+                if (tag && homeTopologyData.summary) {
+                    tag.textContent = `${homeTopologyData.summary.total_nodes} NODES &bull; ${homeTopologyData.summary.compromised_nodes} COMPROMISED`;
+                }
+
+                if (homeTopologyData.nodes && homeTopologyData.nodes.length > 0) {
+                    const defaultNode = homeTopologyData.nodes.find(n => n.status === 'c2_pivot' || n.status === 'compromised') || homeTopologyData.nodes[0];
+                    selectHomeNode(defaultNode);
+                }
+
+                renderHomeTopologyCanvas();
+            } catch (err) {
+                console.warn('Topology loading error:', err);
+            }
+        }
+
+        function selectHomeNode(node) {
+            homeSelectedNode = node;
+            const lbl = document.getElementById('home-insp-label');
+            const ip = document.getElementById('home-insp-ip');
+            const zone = document.getElementById('home-insp-zone');
+            const st = document.getElementById('home-insp-status');
+            const alerts = document.getElementById('home-insp-alerts');
+
+            if (lbl) lbl.textContent = node.label || 'Node';
+            if (ip) ip.textContent = node.ip || '—';
+            if (zone) zone.textContent = node.zone || '—';
+            if (st) {
+                st.textContent = (node.status || 'NORMAL').toUpperCase();
+                let col = '#A1A1AA';
+                if (node.status === 'compromised' || node.status === 'c2_pivot') col = '#FFFFFF';
+                else if (node.status === 'at_risk') col = '#D4D4D8';
+                st.style.color = col;
+            }
+            if (alerts) {
+                alerts.textContent = (node.active_alerts && node.active_alerts.length > 0) ?
+                    node.active_alerts.join(', ') : 'No active incident flags';
+            }
+        }
+
+        function renderHomeTopologyCanvas() {
+            const canvas = document.getElementById('home-topology-canvas');
+            if (!canvas || !homeTopologyData) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width = canvas.parentElement.clientWidth;
+            const h = canvas.height = 380;
+
+            ctx.clearRect(0, 0, w, h);
+
+            const zoneX = {
+                "External Internet": 50,
+                "Perimeter": w * 0.22,
+                "DMZ": w * 0.38,
+                "Workstations": w * 0.55,
+                "Internal Core": w * 0.72,
+                "Database Tier": w * 0.88,
+                "PCI Secured Zone": w * 0.88
+            };
+
+            const nodePositions = {};
+            const nodesByZone = {};
+
+            homeTopologyData.nodes.forEach(n => {
+                if (!nodesByZone[n.zone]) nodesByZone[n.zone] = [];
+                nodesByZone[n.zone].push(n);
+            });
+
+            Object.keys(nodesByZone).forEach(z => {
+                const list = nodesByZone[z];
+                const baseX = zoneX[z] || w * 0.5;
+                const stepY = h / (list.length + 1);
+                list.forEach((n, idx) => {
+                    nodePositions[n.id] = {
+                        x: baseX,
+                        y: stepY * (idx + 1),
+                        node: n
+                    };
+                });
+            });
+
+            // Draw Edges (Monochrome)
+            homeTopologyData.edges.forEach(e => {
+                const src = nodePositions[e.source];
+                const dst = nodePositions[e.target];
+                if (!src || !dst) return;
+
+                ctx.beginPath();
+                ctx.moveTo(src.x, src.y);
+                ctx.lineTo(dst.x, dst.y);
+
+                if (e.threat_detected) {
+                    ctx.strokeStyle = '#FFFFFF';
+                    ctx.lineWidth = 2.0;
+                    ctx.setLineDash([5, 3]);
+                } else {
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([]);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+            });
+
+            // Draw Nodes (Monochrome)
+            Object.values(nodePositions).forEach(pos => {
+                const n = pos.node;
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, 14, 0, Math.PI * 2);
+
+                let fillColor = '#3F3F46'; // Default normal
+                let strokeColor = 'rgba(255, 255, 255, 0.3)';
+                let strokeWidth = 1.5;
+
+                if (n.status === 'at_risk') {
+                    fillColor = '#71717A';
+                    strokeColor = '#D4D4D8';
+                    strokeWidth = 2;
+                } else if (n.status === 'compromised' || n.status === 'c2_pivot') {
+                    fillColor = '#FFFFFF';
+                    strokeColor = '#FFFFFF';
+                    strokeWidth = 3;
+                } else if (n.status === 'isolated') {
+                    fillColor = '#18181B';
+                    strokeColor = '#A1A1AA';
+                    strokeWidth = 2;
+                }
+
+                ctx.fillStyle = fillColor;
+                ctx.fill();
+                ctx.lineWidth = strokeWidth;
+                ctx.strokeStyle = strokeColor;
+                ctx.stroke();
+
+                // Selected ring halo
+                if (homeSelectedNode && homeSelectedNode.id === n.id) {
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, 20, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#FFFFFF';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+
+                ctx.font = '10px JetBrains Mono';
+                ctx.fillStyle = (n.status === 'compromised' || n.status === 'c2_pivot') ? '#FFFFFF' : '#A1A1AA';
+                ctx.textAlign = 'center';
+                ctx.fillText(n.label, pos.x, pos.y + 24);
+            });
+
+            canvas.onclick = (evt) => {
+                const rect = canvas.getBoundingClientRect();
+                const clickX = evt.clientX - rect.left;
+                const clickY = evt.clientY - rect.top;
+
+                Object.values(nodePositions).forEach(pos => {
+                    const dist = Math.hypot(clickX - pos.x, clickY - pos.y);
+                    if (dist < 18) {
+                        selectHomeNode(pos.node);
+                        renderHomeTopologyCanvas();
+                    }
+                });
+            };
+        }
+
+        async function checkApiHealth() {
+            try {
+                const res = await fetch(`${getBackendBaseUrl()}/health`);
+                const footerStatus = document.getElementById('footer-api-status');
+                if (res.ok && footerStatus) {
+                    footerStatus.textContent = 'API ONLINE';
+                }
+            } catch {
+                const footerStatus = document.getElementById('footer-api-status');
+                if (footerStatus) footerStatus.textContent = 'OFFLINE';
+            }
+        }
+
+        // ==========================================
+        // Lifecycle Initialization
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', () => {
+            initMono3D();
+            initNavGlassSlider();
+            initScrollParallax();
+            initLensControls();
+            initZenMode();
+
+            loadLiveAlerts();
+            loadForecastData();
+            loadHomeTopology();
+            checkApiHealth();
+
+            // Subtle interactive 3D tilt on Prism Capsule cards
+            document.querySelectorAll('.prism-capsule-card').forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = (e.clientX - rect.left) / rect.width - 0.5;
+                    const y = (e.clientY - rect.top) / rect.height - 0.5;
+                    card.style.transform = `translateY(-4px) perspective(1000px) rotateX(${-y * 6}deg) rotateY(${x * 6}deg)`;
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = '';
+                });
+            });
+
+            window.addEventListener('resize', () => {
+                if (homeTopologyData) renderHomeTopologyCanvas();
+            });
+
+            // Initialize Liquid Glass Convex Capsule Engine
+            if (window.LiquidGlassEngine) {
+                window.prismCapsuleInstance = new LiquidGlassEngine({
+                    target: '.liquid-glass-lens',
+                    filterId: 'liquid-convex-lens',
+                    shape: 'capsule',
+                    displacementScale: 0.16,
+                    bevelRatio: 0.55,
+                    blur: 1.0,
+                    brightness: 1.0,
+                    saturate: 100,
+                    draggable: true,
+                    interactiveTilt: true
+                });
+
+                window.navCapsuleInstance = new LiquidGlassEngine({
+                    target: '.nav-prism-capsule',
+                    filterId: 'liquid-convex-lens-nav',
+                    shape: 'capsule',
+                    displacementScale: 0.08,
+                    bevelRatio: 0.35,
+                    blur: 0,
+                    brightness: 1.0,
+                    saturate: 100,
+                    draggable: false,
+                    interactiveTilt: false
+                });
+
+                window.cardsCapsuleInstance = new LiquidGlassEngine({
+                    target: '.prism-capsule-card',
+                    filterId: 'liquid-convex-cards',
+                    shape: 'box',
+                    cornerRadius: 28,
+                    bevelWidth: 34,
+                    displacementScale: 0.14,
+                    blur: 0.5,
+                    brightness: 1.05,
+                    saturate: 120,
+                    draggable: false,
+                    interactiveTilt: true
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

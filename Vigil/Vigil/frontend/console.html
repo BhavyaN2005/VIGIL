@@ -1,0 +1,3648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIGIL — Network Threat Operations & Forecasting Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+
+            /* Strict Swiss-Monochrome Color Tokens */
+            --bg-canvas: #050505;
+            --bg-surface: #0A0A0E;
+            --bg-surface-elevated: #0E121B;
+            --bg-card: rgba(10, 10, 14, 0.74);
+            --border-hairline: rgba(255, 255, 255, 0.09);
+            --border-hover: rgba(255, 255, 255, 0.32);
+            --border-active: #FFFFFF;
+
+            --white: #FFFFFF;
+            --zinc-100: #F4F4F5;
+            --zinc-200: #E4E4E7;
+            --zinc-300: #D4D4D8;
+            --zinc-400: #A1A1AA;
+            --zinc-500: #71717A;
+            --zinc-600: #52525B;
+            --zinc-700: #3F3F46;
+            --zinc-800: #27272A;
+            --zinc-900: #18181B;
+            --zinc-950: #09090B;
+
+            /* Accent & Alert Color Semantics */
+            --cyan-accent: #FFFFFF;
+            --coral-spark: #EF4444;
+            --amber-warn: #F59E0B;
+            --green-safe: #10B981;
+            --purple-zd: #A1A1AA;
+            --text-main: #FFFFFF;
+            --text-muted: #71717A;
+
+            /* Red Tactical & Critical Alert Tokens */
+            --crimson-crit: #EF4444;
+            --crimson-crit-hover: #DC2626;
+            --crimson-crit-glow: rgba(239, 68, 68, 0.35);
+            --crimson-crit-subtle: rgba(239, 68, 68, 0.14);
+            --crimson-crit-border: rgba(239, 68, 68, 0.55);
+
+            --vermilion-high: #FF6B4A;
+            --vermilion-high-subtle: rgba(255, 107, 74, 0.14);
+            --vermilion-high-border: rgba(255, 107, 74, 0.45);
+
+            /* Font Hierarchy */
+            --font-display: 'Space Grotesk', -apple-system, sans-serif;
+            --font-sans: 'Inter', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --display: var(--font-display);
+            --sans: var(--font-sans);
+            --mono: var(--font-mono);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 6.5rem;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        body {
+            width: 100%;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+            background: #050505 !important;
+            background-color: var(--bg-canvas) !important;
+            color: var(--zinc-100);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        /* Full Page WebKit scrollbar removal (clean window frame) */
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+        /* ===== CYBER-RAIL AESTHETIC BOX SCROLLBARS ===== */
+        .table-wrap,
+        #alerts-feed,
+        #alert-feed-list {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.03);
+            -ms-overflow-style: auto;
+        }
+
+        .table-wrap::-webkit-scrollbar,
+        #alerts-feed::-webkit-scrollbar,
+        #alert-feed-list::-webkit-scrollbar {
+            display: block !important;
+            width: 5px !important;
+            height: 5px !important;
+        }
+
+        .table-wrap::-webkit-scrollbar-track,
+        #alerts-feed::-webkit-scrollbar-track,
+        #alert-feed-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 9999px;
+            margin: 6px 0;
+        }
+
+        .table-wrap::-webkit-scrollbar-thumb,
+        #alerts-feed::-webkit-scrollbar-thumb,
+        #alert-feed-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.22);
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.2s ease;
+        }
+
+        .table-wrap::-webkit-scrollbar-thumb:hover,
+        #alerts-feed::-webkit-scrollbar-thumb:hover,
+        #alert-feed-list::-webkit-scrollbar-thumb:hover {
+            background: #FFFFFF;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+        }
+
+        #alerts-feed.has-alerts::-webkit-scrollbar-thumb,
+        .table-wrap.has-threats::-webkit-scrollbar-thumb {
+            background: rgba(239, 68, 68, 0.55);
+            border-color: rgba(239, 68, 68, 0.7);
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.45);
+        }
+
+        /* Persistent Full-Screen 3D Background Canvas */
+        #hero-3d-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            display: block;
+            background: transparent !important;
+            pointer-events: none;
+        }
+
+        /* Subtle Ambient Vignette Overlay */
+        .vignette-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 40%, rgba(5, 5, 5, 0.85) 100%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Top Navigation Prism Capsule */
+        .dash-navbar {
+            position: fixed;
+            top: 1.15rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            width: max-content;
+            max-width: 96vw;
+        }
+
+        .dash-nav-capsule {
+            pointer-events: auto;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.35rem 0.65rem 0.35rem 0.85rem;
+            border-radius: 9999px;
+            background: rgba(10, 10, 14, 0.82);
+            backdrop-filter: blur(20px) saturate(120%);
+            -webkit-backdrop-filter: blur(20px) saturate(120%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow:
+                0 20px 50px -10px rgba(0, 0, 0, 0.9),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.14),
+                inset 0 -1px 0 0 rgba(0, 0, 0, 0.7);
+            user-select: none;
+            cursor: default !important;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .dash-nav-capsule:hover {
+            border-color: rgba(255, 255, 255, 0.28);
+        }
+
+        .dash-brand {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            text-decoration: none;
+            cursor: pointer;
+            padding: 0.2rem 0.4rem;
+            background: transparent;
+            border: none;
+            transition: opacity 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .dash-brand:hover {
+            opacity: 0.85;
+        }
+
+        .dash-logo {
+            width: 26px;
+            height: 26px;
+            background: var(--white);
+            color: #000;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+        }
+
+        .dash-brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.15;
+        }
+
+        .dash-brand-title {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            color: var(--white);
+        }
+
+        .dash-brand-sub {
+            font-size: 0.55rem;
+            font-family: var(--font-mono);
+            color: var(--zinc-400);
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .dash-nav-divider {
+            width: 1px;
+            height: 18px;
+            background: rgba(255, 255, 255, 0.12);
+            flex-shrink: 0;
+        }
+
+        /* Top Nav Capsule Links with White Slider Bar */
+        .dash-nav-links {
+            position: relative;
+            display: flex;
+            align-items: center;
+            list-style: none;
+            margin: 0;
+            padding: 0 0.2rem;
+            gap: 0.15rem;
+        }
+
+        .dash-nav-active-bar {
+            position: absolute;
+            bottom: 0px;
+            left: 0;
+            height: 2.5px;
+            border-radius: 9999px;
+            background: #ffffff;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.95), 0 0 3px #ffffff;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0;
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                        width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                        opacity 0.2s ease;
+            transform: translate3d(0, 0, 0);
+        }
+
+        .dash-tab-btn {
+            position: relative;
+            z-index: 2;
+            color: var(--zinc-400);
+            text-decoration: none;
+            font-size: 0.72rem;
+            font-family: var(--font-mono);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.45rem 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: color 0.22s ease, text-shadow 0.22s ease;
+            white-space: nowrap;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            outline: none;
+            border-radius: 4px;
+        }
+
+        .dash-tab-btn:hover {
+            color: var(--white);
+        }
+
+        .dash-tab-btn.active {
+            color: var(--white);
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.7);
+        }
+
+        .dash-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            flex-shrink: 0;
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+        }
+
+        .dash-status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: #FFFFFF;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 0.35rem 0.65rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+        }
+
+        .pulse-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.95);
+            animation: pulse-dot-anim 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-dot-anim {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(0.8); }
+        }
+
+        .dash-uptime {
+            color: var(--zinc-500);
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+        }
+
+        .dash-uptime span {
+            color: #FFFFFF;
+        }
+
+        .dash-home-btn {
+            color: var(--zinc-400);
+            text-decoration: none;
+            padding: 0.35rem 0.75rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.04);
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            letter-spacing: 0.06em;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .dash-home-btn:hover {
+            color: #FFFFFF;
+            background: rgba(255, 255, 255, 0.14);
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+
+        /* ===== SCROLLABLE PAGE CONTENT ===== */
+        .page-content {
+            position: relative;
+            z-index: 10;
+            pointer-events: none;
+            padding-top: 0;
+            padding-bottom: 5rem;
+        }
+
+        .page-content > * {
+            pointer-events: auto;
+        }
+
+        /* ===== HERO SECTION (Matches Threats Page Style & Scroll Entrance) ===== */
+        .hero-section {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            pointer-events: none;
+        }
+
+        .hero-text-block {
+            text-align: center;
+            margin-top: -30px;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .hero-eyebrow {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--zinc-300);
+            margin-bottom: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+        }
+
+        .hero-status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 10px #ffffff;
+            display: inline-block;
+            animation: pulse-dot-anim 2s infinite ease-in-out;
+        }
+
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: clamp(3.2rem, 8vw, 6.5rem);
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            color: #FFFFFF;
+            line-height: 1.0;
+            text-shadow: 0 0 70px rgba(255, 255, 255, 0.14);
+            margin-bottom: 0.65rem;
+        }
+
+        .hero-subtitle {
+            font-family: var(--font-sans);
+            font-size: clamp(0.95rem, 1.8vw, 1.22rem);
+            color: var(--zinc-300);
+            letter-spacing: 0.01em;
+            margin-bottom: 2.2rem;
+            max-width: 660px;
+            margin-left: auto;
+            margin-right: auto;
+            font-weight: 400;
+        }
+
+        .hero-ctas {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            pointer-events: auto;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.75rem 1.6rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.10);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            color: #FFFFFF;
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-primary:hover {
+            background: #FFFFFF;
+            border-color: #FFFFFF;
+            color: #000000;
+            box-shadow: 0 0 24px rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.75rem 1.6rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: var(--zinc-400);
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.22s ease;
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.09);
+            border-color: rgba(255, 255, 255, 0.28);
+            color: #FFFFFF;
+            transform: translateY(-2px);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.45rem;
+            pointer-events: none;
+            animation: float-scroll 2.5s infinite ease-in-out;
+        }
+
+        .scroll-indicator span {
+            font-family: var(--font-mono);
+            font-size: 0.62rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--zinc-500);
+        }
+
+        .scroll-indicator svg {
+            opacity: 0.4;
+        }
+
+        @keyframes float-scroll {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(8px); }
+        }
+
+        /* ===== CONTENT SECTIONS (GENEROUS SCROLL MARGIN FOR NAVBAR CLEARANCE) ===== */
+        .content-section {
+            padding: 4.5rem 2rem 2.5rem;
+            max-width: 1320px;
+            margin: 0 auto;
+            position: relative;
+            scroll-margin-top: 6.5rem; /* Guarantees section eyebrow is completely visible below floating navbar */
+        }
+
+        .section-eyebrow {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+            color: var(--zinc-300);
+            margin-bottom: 0.65rem;
+            display: block;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.7rem, 3.5vw, 2.4rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: #FFFFFF;
+            margin-bottom: 0.55rem;
+            line-height: 1.2;
+        }
+
+        .section-desc {
+            font-size: 0.92rem;
+            color: var(--zinc-400);
+            max-width: 680px;
+            margin-bottom: 2.2rem;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        .section-divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08) 25%, rgba(255, 255, 255, 0.08) 75%, transparent);
+            margin: 2.5rem auto;
+            max-width: 1320px;
+        }
+
+        /* ===== OPTICAL PRISM VIGIL CARDS ===== */
+        .vigil-card {
+            background: rgba(8, 9, 14, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            backdrop-filter: blur(16px) saturate(120%);
+            -webkit-backdrop-filter: blur(16px) saturate(120%);
+            border-radius: 24px;
+            padding: 1.65rem 1.75rem;
+            position: relative;
+            box-shadow:
+                0 24px 60px -12px rgba(0, 0, 0, 0.85),
+                inset 0 1.5px 0 0 rgba(255, 255, 255, 0.38),
+                inset 0 0 24px 0 rgba(255, 255, 255, 0.03),
+                inset 0 -1.5px 0 0 rgba(0, 0, 0, 0.8);
+            transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+            pointer-events: auto;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        .vigil-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 45%;
+            border-radius: 24px 24px 90px 90px / 24px 24px 30px 30px;
+            background: linear-gradient(180deg,
+                rgba(255, 255, 255, 0.10) 0%,
+                rgba(255, 255, 255, 0.02) 60%,
+                transparent 100%
+            );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .vigil-card:hover {
+            border-color: rgba(255, 255, 255, 0.38);
+            box-shadow:
+                0 30px 70px -12px rgba(0, 0, 0, 0.95),
+                inset 0 2px 0 0 rgba(255, 255, 255, 0.60),
+                inset 0 0 30px 0 rgba(255, 255, 255, 0.05),
+                inset 0 -2px 0 0 rgba(0, 0, 0, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .vigil-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.85rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            position: relative;
+            z-index: 2;
+        }
+
+        .vigil-card-title {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #FFFFFF;
+            letter-spacing: 0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex: 1;
+            min-width: 0;
+            line-height: 1.35;
+        }
+
+        .vigil-card-title span {
+            color: var(--zinc-400);
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .vigil-card-tag {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--zinc-400);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* ===== MONOCHROMATIC KPI MINI-STRIP ===== */
+        .kpi-mini-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .kpi-mini-strip { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 640px) {
+            .kpi-mini-strip { grid-template-columns: 1fr; }
+        }
+
+        .kpi-mini {
+            background: rgba(10, 10, 14, 0.74);
+            border: 1px solid var(--border-hairline);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 1.1rem 1.25rem;
+            font-family: var(--font-mono);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.8), inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+        }
+
+        .kpi-mini::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        .kpi-mini.primary::before {
+            background: #FFFFFF;
+        }
+
+        .kpi-mini.critical::before {
+            background: var(--crimson-crit);
+            box-shadow: 0 0 10px var(--crimson-crit-glow);
+        }
+
+        .kpi-mini.critical .kpi-mini-sub {
+            color: var(--crimson-crit);
+            font-weight: 600;
+        }
+
+        .kpi-mini.critical .kpi-mini-value {
+            color: #FFFFFF;
+            text-shadow: 0 0 16px var(--crimson-crit-glow);
+        }
+
+        .kpi-mini.warning-high::before {
+            background: var(--vermilion-high);
+            box-shadow: 0 0 8px rgba(255, 107, 74, 0.35);
+        }
+
+        .kpi-mini.warning-high .kpi-mini-sub {
+            color: var(--vermilion-high);
+            font-weight: 600;
+        }
+
+        .kpi-mini-label {
+            font-size: 0.68rem;
+            color: var(--zinc-500);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 0.35rem;
+        }
+
+        .kpi-mini-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #FFFFFF;
+            font-feature-settings: "tnum";
+            line-height: 1.1;
+        }
+
+        .kpi-mini-sub {
+            font-size: 0.68rem;
+            color: var(--zinc-400);
+            margin-top: 0.3rem;
+        }
+
+        /* ===== GRIDS ===== */
+        .cards-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .cards-grid-3-1 {
+            display: grid;
+            grid-template-columns: 2.8fr 1.2fr;
+            gap: 1.5rem;
+        }
+
+        .cards-grid-topo {
+            display: grid;
+            grid-template-columns: 2.8fr 1.2fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .cards-grid-2 { grid-template-columns: 1fr; }
+            .cards-grid-3-1 { grid-template-columns: 1fr; }
+            .cards-grid-topo { grid-template-columns: 1fr; }
+        }
+
+        /* ===== TABLES ===== */
+        .table-wrap {
+            max-height: 380px;
+            overflow-y: auto;
+            border: 1px solid var(--border-hairline);
+            border-radius: 12px;
+            background: rgba(5, 7, 11, 0.7);
+            position: relative;
+            mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent 100%);
+            transition: mask-image 0.25s ease, -webkit-mask-image 0.25s ease;
+        }
+
+        .table-wrap:hover {
+            mask-image: none;
+            -webkit-mask-image: none;
+        }
+
+        /* ===== SCROLL AFFORDANCE HINT FOOTER ===== */
+        .scroll-affordance-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.35rem 0.8rem;
+            margin-top: 0.35rem;
+            font-family: var(--font-mono);
+            font-size: 0.64rem;
+            color: var(--zinc-500);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            background: rgba(5, 7, 11, 0.6);
+            backdrop-filter: blur(8px);
+        }
+
+        .scroll-affordance-dot {
+            display: inline-block;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--crimson-crit);
+            box-shadow: 0 0 6px var(--crimson-crit-glow);
+            margin-right: 0.45rem;
+            animation: pulse-dot-anim 2s infinite ease-in-out;
+        }
+
+        .scroll-affordance-arrow {
+            color: var(--zinc-400);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(10, 10, 14, 0.95);
+            color: var(--zinc-400);
+            padding: 0.75rem 0.95rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.68rem;
+            position: sticky;
+            top: 0;
+            border-bottom: 1px solid var(--border-hairline);
+            backdrop-filter: blur(12px);
+            z-index: 2;
+            letter-spacing: 0.06em;
+        }
+
+        td {
+            padding: 0.65rem 0.95rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            white-space: nowrap;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        tr.anomaly td {
+            background: rgba(239, 68, 68, 0.07);
+        }
+
+        tr.anomaly td:first-child {
+            border-left: 3px solid var(--crimson-crit);
+        }
+
+        /* ===== MICRO-PILL BADGES ===== */
+        .badge {
+            display: inline-block;
+            padding: 0.18rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            font-family: var(--font-mono);
+        }
+
+        .badge-benign {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--zinc-400);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .badge-low {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--zinc-300);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+        }
+
+        .badge-medium {
+            background: rgba(245, 158, 11, 0.12);
+            color: #FBBF24;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+        }
+
+        .badge-high {
+            background: var(--vermilion-high-subtle);
+            color: var(--vermilion-high);
+            border: 1px solid var(--vermilion-high-border);
+            font-weight: 700;
+            box-shadow: 0 0 8px rgba(255, 107, 74, 0.25);
+        }
+
+        .badge-critical {
+            background: var(--crimson-crit-subtle);
+            color: var(--crimson-crit);
+            border: 1px solid var(--crimson-crit-border);
+            font-weight: 700;
+            box-shadow: 0 0 12px var(--crimson-crit-glow);
+            text-shadow: 0 0 8px rgba(239, 68, 68, 0.45);
+        }
+
+        .badge-zeroday {
+            background: rgba(239, 68, 68, 0.22);
+            color: #FFFFFF;
+            border: 1px solid var(--crimson-crit);
+            font-weight: 700;
+            box-shadow: 0 0 12px var(--crimson-crit-glow);
+            animation: zeroday-pulse 2.2s infinite ease-in-out;
+        }
+
+        @keyframes zeroday-pulse {
+            0%, 100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.35); }
+            50% { box-shadow: 0 0 18px rgba(239, 68, 68, 0.7); }
+        }
+
+        .badge-isolated {
+            background: transparent;
+            color: var(--zinc-400);
+            border: 1px dashed rgba(255, 255, 255, 0.35);
+        }
+
+        /* ===== BUTTONS & CONTROLS ===== */
+        .btn-control, .btn-action, .btn-quarantine, .btn-inject {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.45rem 1rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #FFFFFF;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+            text-decoration: none;
+        }
+
+        .btn-control:hover, .btn-action:hover, .btn-inject:hover {
+            background: #FFFFFF;
+            color: #000000;
+            border-color: #FFFFFF;
+            box-shadow: 0 0 16px rgba(255, 255, 255, 0.35);
+        }
+
+        .btn-quarantine {
+            background: rgba(239, 68, 68, 0.16);
+            color: var(--crimson-crit);
+            border: 1px solid var(--crimson-crit-border);
+            font-weight: 700;
+            box-shadow: 0 0 14px var(--crimson-crit-glow);
+        }
+
+        .btn-quarantine:hover {
+            background: var(--crimson-crit);
+            color: #FFFFFF;
+            border-color: var(--crimson-crit);
+            box-shadow: 0 0 24px rgba(239, 68, 68, 0.65);
+        }
+
+        .dash-select {
+            background-color: #0C0E14;
+            color: #E4E4E7;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 8px;
+            padding: 0.45rem 2.2rem 0.45rem 0.85rem;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            letter-spacing: 0.02em;
+            outline: none;
+            cursor: pointer;
+            color-scheme: dark;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23A1A1AA' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 11px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+            height: 32px;
+            vertical-align: middle;
+        }
+
+        .dash-select:hover {
+            border-color: rgba(255, 255, 255, 0.38);
+            background-color: #12151E;
+            color: #FFFFFF;
+        }
+
+        .dash-select:focus {
+            border-color: rgba(255, 255, 255, 0.55);
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
+            background-color: #12151E;
+        }
+
+        .dash-select option {
+            background-color: #0C0E14;
+            color: #F4F4F5;
+            padding: 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+        }
+
+        @supports (appearance: base-select) {
+            .dash-select,
+            .dash-select::picker(select) {
+                appearance: base-select;
+            }
+            .dash-select::picker(select) {
+                background-color: #0C0E14;
+                border: 1px solid rgba(255, 255, 255, 0.18);
+                border-radius: 8px;
+                color: #F4F4F5;
+                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.85);
+                padding: 0.4rem;
+            }
+            .dash-select::picker-icon {
+                color: #A1A1AA;
+            }
+            .dash-select option::checkmark {
+                color: #FFFFFF;
+            }
+        }
+
+        /* ===== THREAT INJECTION STRIP ===== */
+        .home-injection-strip {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            padding: 0.75rem 1rem;
+            background: rgba(0, 0, 0, 0.45);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            margin-bottom: 0.75rem;
+            border-radius: 8px;
+        }
+
+        .home-inject-label {
+            color: var(--zinc-400);
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            margin-right: 0.25rem;
+        }
+
+        /* ===== SHAP WATERFALL ===== */
+        .shap-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .shap-row {
+            display: grid;
+            grid-template-columns: 140px 1fr 65px;
+            align-items: center;
+            gap: 0.85rem;
+            font-family: var(--font-mono);
+            font-size: 0.74rem;
+        }
+
+        .shap-label {
+            color: var(--zinc-300);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .shap-track {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .shap-bar-pos {
+            height: 100%;
+            background: var(--crimson-crit);
+            border-radius: 2px;
+            box-shadow: 0 0 8px var(--crimson-crit-glow);
+        }
+
+        .shap-bar-neg {
+            height: 100%;
+            background: rgba(255, 255, 255, 0.32);
+            border-radius: 2px;
+        }
+
+        /* ===== ALERTS FEED ===== */
+        #alerts-feed {
+            max-height: 520px;
+            overflow-y: auto;
+            position: relative;
+            mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent 100%);
+            transition: mask-image 0.25s ease, -webkit-mask-image 0.25s ease;
+        }
+
+        #alerts-feed:hover {
+            mask-image: none;
+            -webkit-mask-image: none;
+        }
+
+        .alert-item {
+            padding: 0.85rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            transition: background 0.2s ease;
+        }
+
+        .alert-item:last-child {
+            border-bottom: none;
+        }
+
+        .alert-item.alert-critical {
+            border-left: 2px solid var(--crimson-crit);
+            padding-left: 0.75rem;
+            background: rgba(239, 68, 68, 0.04);
+        }
+
+        .alert-item.alert-high {
+            border-left: 2px solid var(--vermilion-high);
+            padding-left: 0.75rem;
+        }
+
+        .alert-item.live-pulse {
+            animation: alert-flash 1.2s ease;
+        }
+
+        @keyframes alert-flash {
+            0% { 
+                background: rgba(239, 68, 68, 0.32); 
+                box-shadow: inset 0 0 16px rgba(239, 68, 68, 0.25);
+            }
+            100% { 
+                background: transparent; 
+                box-shadow: none;
+            }
+        }
+
+        #alerts-count-badge.has-alerts {
+            background: var(--crimson-crit-subtle);
+            color: var(--crimson-crit);
+            border: 1px solid var(--crimson-crit-border);
+            box-shadow: 0 0 10px var(--crimson-crit-glow);
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .alert-time {
+            color: var(--zinc-500);
+            font-size: 0.68rem;
+        }
+
+        .alert-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.3rem;
+        }
+
+        /* ===== KILL CHAIN TRACK ===== */
+        .kill-chain-track {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.65rem;
+            margin: 1.2rem 0;
+        }
+
+        @media (max-width: 900px) {
+            .kill-chain-track { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        .kill-chain-step {
+            background: rgba(10, 10, 14, 0.7);
+            border: 1px solid var(--border-hairline);
+            border-radius: 12px;
+            padding: 0.85rem 0.75rem;
+            text-align: center;
+            position: relative;
+            transition: all 0.25s ease;
+        }
+
+        .kill-chain-step.past {
+            border-color: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .kill-chain-step.active {
+            border-color: var(--crimson-crit);
+            background: var(--crimson-crit-subtle);
+            box-shadow: 0 0 18px var(--crimson-crit-glow);
+        }
+
+        .kill-chain-step.active .step-num {
+            color: var(--crimson-crit);
+            font-weight: 700;
+        }
+
+        .kill-chain-step.active .step-name {
+            color: #FFFFFF;
+            font-weight: 700;
+        }
+
+        #kill-chain-status-badge {
+            background: var(--crimson-crit-subtle);
+            color: var(--crimson-crit);
+            border: 1px solid var(--crimson-crit-border);
+            box-shadow: 0 0 10px var(--crimson-crit-glow);
+        }
+
+        .kill-chain-step.next {
+            border-color: rgba(255, 255, 255, 0.4);
+            border-style: dashed;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .step-num {
+            font-family: var(--font-mono);
+            font-size: 0.62rem;
+            color: var(--zinc-500);
+            margin-bottom: 0.25rem;
+            letter-spacing: 0.08em;
+        }
+
+        .step-name {
+            font-family: var(--font-display);
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #FFFFFF;
+        }
+
+        .step-ttp {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--zinc-300);
+            margin-top: 0.35rem;
+        }
+
+        /* ===== TOPOLOGY CANVAS ===== */
+        #topology-canvas {
+            width: 100%;
+            height: 480px;
+            background: #05070B;
+            border: 1px solid var(--border-hairline);
+            border-radius: 12px;
+            cursor: crosshair;
+            display: block;
+        }
+
+        /* ===== FOOTER ===== */
+        .vigil-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 2.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 0.74rem;
+            color: var(--zinc-500);
+            max-width: 1320px;
+            margin: 2rem auto 0;
+            pointer-events: auto;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .footer-brand {
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: #FFFFFF;
+            font-size: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 1.8rem;
+        }
+
+        .footer-links a {
+            color: var(--zinc-400);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: #FFFFFF;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Full-Screen Persistent 3D Background Canvas -->
+    <canvas id="hero-3d-canvas"></canvas>
+
+    <!-- Subtle Ambient Vignette Overlay -->
+    <div class="vignette-overlay"></div>
+
+    <!-- Floating Top Nav Prism Capsule -->
+    <header class="dash-navbar" id="main-navbar">
+        <nav class="dash-nav-capsule">
+            <a href="#section-hero" class="dash-brand" onclick="scrollToTarget('section-hero'); return false;">
+                <div class="dash-logo">V</div>
+                <div class="dash-brand-text">
+                    <span class="dash-brand-title">VIGIL</span>
+                    <span class="dash-brand-sub">OPS CONSOLE</span>
+                </div>
+            </a>
+
+            <div class="dash-nav-divider"></div>
+
+            <div class="dash-nav-links" id="dash-nav-links">
+                <div class="dash-nav-active-bar" id="dash-nav-active-bar"></div>
+                <button class="dash-tab-btn" data-target="section-forecast">
+                    <span>◈</span> Forecast
+                </button>
+                <button class="dash-tab-btn" data-target="section-threats-stream">
+                    <span>◉</span> Live Stream
+                </button>
+                <button class="dash-tab-btn" data-target="section-killchain">
+                    <span>◆</span> Kill Chain
+                </button>
+                <button class="dash-tab-btn" data-target="section-topology">
+                    <span>◎</span> Topology
+                </button>
+            </div>
+
+            <div class="dash-nav-divider"></div>
+
+            <div class="dash-nav-right">
+                <button class="dash-home-btn" id="btn-backend-config" onclick="configureBackendUrl()" title="Configure Render Backend Endpoint" style="display:inline-flex;align-items:center;gap:0.35rem;">
+                    <span id="backend-status-dot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#10B981;"></span>
+                    <span id="backend-status-text">Backend</span>
+                </button>
+                <a href="/#section-overview" class="dash-home-btn">Overview</a>
+                <a href="/#section-threats" class="dash-home-btn">Threats</a>
+                <a href="/" class="dash-home-btn">&larr; Home</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- ===== SCROLLABLE PAGE CONTENT ===== -->
+    <main class="page-content">
+
+        <!-- SECTION 0: HERO (Entrance to Console, Scroll Down to Reveal) -->
+        <section class="hero-section" id="section-hero">
+            <div class="hero-text-block">
+                <div class="hero-eyebrow">
+                    <span class="hero-status-dot"></span>
+                    <span>AUTONOMOUS CYBER DEFENSE &bull; ZERO-DAY RESILIENT &bull; LINE-RATE TRIAGE</span>
+                </div>
+                <h1 class="hero-title">VIGIL</h1>
+                <p class="hero-subtitle">Threat Operations &amp; Predictive Forecasting Console &mdash; Deciphering Adversary Tradecraft at Wire Speed.</p>
+                <div class="hero-ctas">
+                    <button class="btn-primary" onclick="scrollToTarget('section-forecast')">Enter Operations &darr;</button>
+                    <button class="btn-ghost" onclick="scrollToTarget('section-threats-stream')">Live Stream Feed &rarr;</button>
+                </div>
+            </div>
+            <div class="scroll-indicator">
+                <svg width="16" height="24" viewBox="0 0 16 24" fill="none">
+                    <rect x="6" y="1" width="4" height="8" rx="2" fill="white" opacity="0.6"/>
+                    <path d="M8 15L4 19H12L8 15Z" fill="white" opacity="0.6"/>
+                </svg>
+                <span>Scroll to explore console</span>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ========================================== -->
+        <!-- SECTION 1: THREAT FORECASTING & MULTI-HORIZON -->
+        <!-- ========================================== -->
+        <section id="section-forecast" class="content-section">
+            <div class="section-eyebrow">&sect; 01 &mdash; Predictive Intelligence</div>
+            <h2 class="section-title">Threat Forecasting &amp; Multi-Horizon Modeling</h2>
+            <p class="section-desc">Temporal Fusion Transformer (TFT) multi-horizon projections predicting attack vectors, confidence bounds, and crown-jewel exposure before incursion.</p>
+
+            <!-- Multi-Horizon KPI Mini-Strip -->
+            <div class="kpi-mini-strip">
+                <div class="kpi-mini warning-high">
+                    <div class="kpi-mini-label">Forecast Horizon: T+1 Hour</div>
+                    <div class="kpi-mini-value" id="kpi-f-1h">84.2%</div>
+                    <div class="kpi-mini-sub">Threat Severity: HIGH</div>
+                </div>
+                <div class="kpi-mini critical">
+                    <div class="kpi-mini-label">Forecast Horizon: T+6 Hours</div>
+                    <div class="kpi-mini-value" id="kpi-f-6h">91.0%</div>
+                    <div class="kpi-mini-sub">Threat Severity: CRITICAL</div>
+                </div>
+                <div class="kpi-mini">
+                    <div class="kpi-mini-label">Forecast Horizon: T+24 Hours</div>
+                    <div class="kpi-mini-value" id="kpi-f-24h">95.5%</div>
+                    <div class="kpi-mini-sub">TFT Temporal Transformer</div>
+                </div>
+                <div class="kpi-mini critical">
+                    <div class="kpi-mini-label">Composite Risk Index</div>
+                    <div class="kpi-mini-value" id="kpi-f-risk">0.840</div>
+                    <div class="kpi-mini-sub">Criticality &times; ML &times; CTI</div>
+                </div>
+            </div>
+
+            <!-- 24-Hour Predictive Attack Trajectory Chart -->
+            <div class="vigil-card">
+                <div class="vigil-card-header">
+                    <div class="vigil-card-title">
+                        <span>[TRAJECTORY]</span> 24-Hour Attack Probability Trajectory with 90% Confidence Bounds
+                    </div>
+                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                        <span class="vigil-card-tag">Segment:</span>
+                        <select id="forecast-segment-select" onchange="loadForecast(this.value)" class="dash-select">
+                            <option value="all">Enterprise All Segments</option>
+                            <option value="dmz">DMZ Ingress Perimeter</option>
+                            <option value="internal">Internal Core Network</option>
+                            <option value="pci-zone">PCI-DSS Secured Zone</option>
+                        </select>
+                        <button class="btn-control" onclick="loadForecast()">Refresh Model</button>
+                    </div>
+                </div>
+                <div style="height: 280px; position:relative;">
+                    <canvas id="forecastTrajectoryChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Predicted Attacks & Top Risk Assets Grid -->
+            <div class="cards-grid-2">
+                <!-- Predicted Vectors & Quantiles Table -->
+                <div class="vigil-card">
+                    <div class="vigil-card-header">
+                        <div class="vigil-card-title">
+                            <span>[STREAM]</span> Predicted Attack Vectors (Next 24 Hours)
+                        </div>
+                        <div class="vigil-card-tag">TFT Quantiles</div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Attack Vector</th>
+                                    <th>Probability</th>
+                                    <th>95% Conf. Interval</th>
+                                    <th>Severity</th>
+                                    <th>Trend</th>
+                                    <th>Technique</th>
+                                </tr>
+                            </thead>
+                            <tbody id="forecast-attacks-tbody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Critical Crown Jewel Assets at Risk -->
+                <div class="vigil-card">
+                    <div class="vigil-card-header">
+                        <div class="vigil-card-title">
+                            <span>[GUARD]</span> Targeted High-Value Assets
+                        </div>
+                        <div class="vigil-card-tag">Vulnerability Exposure</div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Asset Name</th>
+                                    <th>IP Address</th>
+                                    <th>Zone</th>
+                                    <th>Criticality</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="forecast-assets-tbody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Root Cause Attribution & SOAR Playbooks -->
+            <div class="cards-grid-2">
+                <!-- SHAP Root Cause Explanation -->
+                <div class="vigil-card">
+                    <div class="vigil-card-header">
+                        <div class="vigil-card-title">
+                            <span>[ATTRIBUTION]</span> Threat Attribution &amp; Root Drivers
+                        </div>
+                        <div class="vigil-card-tag">SHAP Attribution</div>
+                    </div>
+                    <div style="font-family:var(--font-mono); font-size:0.8rem; line-height:1.6; color:var(--zinc-200); background:rgba(5,7,11,0.7); padding:1rem; border-radius:12px; border:1px solid var(--border-hairline);" id="forecast-shap-explanation">
+                        Loading model feature attribution...
+                    </div>
+                    <div style="margin-top:1.2rem;">
+                        <div style="font-size:0.72rem; font-family:var(--font-mono); color:var(--zinc-400); text-transform:uppercase; margin-bottom:0.5rem;">
+                            Forecast Simulation Sandbox:
+                        </div>
+                        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                            <select id="sim-attack-select" class="dash-select">
+                                <option value="Brute Force">Simulate Brute Force Escalation</option>
+                                <option value="DDoS">Simulate DDoS Volumetric Flood</option>
+                                <option value="Lateral Movement">Simulate Lateral Pivot</option>
+                                <option value="Data Exfiltration">Simulate Exfiltration Spike</option>
+                            </select>
+                            <button class="btn-inject" onclick="runForecastSimulation()">Run Forecast Simulation</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SOAR Automated Playbooks -->
+                <div class="vigil-card">
+                    <div class="vigil-card-header">
+                        <div class="vigil-card-title">
+                            <span>[SOAR]</span> Recommended SOAR Containment Playbooks
+                        </div>
+                        <div class="vigil-card-tag">Proactive Response</div>
+                    </div>
+                    <div id="soar-playbooks-list" style="display:flex; flex-direction:column; gap:0.6rem;">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ========================================== -->
+        <!-- SECTION 2: LIVE STREAM & XAI ATTRIBUTION (THREATS PAGE STYLE) -->
+        <!-- ========================================== -->
+        <section id="section-threats-stream" class="content-section">
+            <div class="section-eyebrow">&sect; 02 &mdash; Real-Time Triage</div>
+            <h2 class="section-title">Live Threat Detection Stream</h2>
+            <p class="section-desc">High-throughput line-rate packet classifier streaming live network flows with concurrent SHAP explainability and zero-day isolation.</p>
+
+            <!-- Stream KPI Mini-Strip -->
+            <div class="kpi-mini-strip">
+                <div class="kpi-mini primary">
+                    <div class="kpi-mini-label">Flows Processed</div>
+                    <div class="kpi-mini-value" id="kpi-total-flows">0</div>
+                    <div class="kpi-mini-sub">2.0 flows/sec line-rate</div>
+                </div>
+                <div class="kpi-mini">
+                    <div class="kpi-mini-label">Threats Intercepted</div>
+                    <div class="kpi-mini-value" id="kpi-threat-count">0</div>
+                    <div class="kpi-mini-sub" id="kpi-threat-ratio">0.0% anomalous</div>
+                </div>
+                <div class="kpi-mini">
+                    <div class="kpi-mini-label">Zero-Day Anomaly Detection</div>
+                    <div class="kpi-mini-value" id="kpi-zeroday-count">0</div>
+                    <div class="kpi-mini-sub">Autoencoder &tau;=1.627</div>
+                </div>
+                <div class="kpi-mini">
+                    <div class="kpi-mini-label">Inference Latency</div>
+                    <div class="kpi-mini-value" id="kpi-latency">1.8 ms</div>
+                    <div class="kpi-mini-sub">Active Model: <span id="active-model-name">XGBoost</span></div>
+                </div>
+            </div>
+
+            <!-- Live Table & Controls Card -->
+            <div class="vigil-card">
+                <div class="vigil-card-header">
+                    <div class="vigil-card-title">
+                        <span>[STREAM]</span> Real-Time Packet Stream &amp; Flow Classifier
+                    </div>
+                    <div style="display:flex; gap:0.6rem; align-items:center;">
+                        <button class="btn-control" id="btn-toggle-stream" onclick="toggleStream()">Pause Stream</button>
+                        <select id="model-select" onchange="changeModel(this.value)" class="dash-select">
+                            <option value="xgb">Model: XGBoost (Primary)</option>
+                            <option value="rf">Model: Random Forest</option>
+                            <option value="lstm">Model: FlowLSTM</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Simulation Attack Injection Strip -->
+                <div class="home-injection-strip">
+                    <span class="home-inject-label">SIMULATE ATTACK INJECTION:</span>
+                    <button class="btn-inject" onclick="injectAttack('DDoS')">[DDOS] Inject DDoS</button>
+                    <button class="btn-inject" onclick="injectAttack('PortScan')">[PORTSCAN] Inject Scan</button>
+                    <button class="btn-inject" onclick="injectAttack('Brute Force')">[BRUTE_FORCE] Inject Brute Force</button>
+                    <button class="btn-inject" onclick="injectAttack('DoS')">[DOS] Inject DoS</button>
+                    <button class="btn-inject" onclick="injectAttack('Web Attack')">[WEB_ATTACK] Inject SQLi</button>
+                    <button class="btn-inject" onclick="injectAttack('Bot')">[BOTNET] Inject Botnet</button>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Source IP</th>
+                                <th>Destination</th>
+                                <th>Proto</th>
+                                <th>Predicted Class</th>
+                                <th>Confidence</th>
+                                <th>Severity</th>
+                                <th>Zero-Day</th>
+                                <th>Top Driver</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stream-tbody">
+                            <!-- Injected live -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="scroll-affordance-footer">
+                    <span><span class="scroll-affordance-dot"></span> Real-time wire-speed stream &bull; Scroll to inspect historical flows</span>
+                    <span class="scroll-affordance-arrow">&darr; More Telemetry</span>
+                </div>
+            </div>
+
+            <!-- Distribution, SHAP Waterfall & Alerts Feed -->
+            <div class="cards-grid-3-1">
+                <div style="display:flex; flex-direction:column; gap:1.5rem;">
+                    <!-- Traffic Distribution Chart -->
+                    <div class="vigil-card">
+                        <div class="vigil-card-header">
+                            <div class="vigil-card-title">
+                                <span>[EVAL]</span> Traffic Classification Distribution
+                            </div>
+                            <div class="vigil-card-tag">Online Session Counts</div>
+                        </div>
+                        <div style="height:220px; position:relative;">
+                            <canvas id="attackDistChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Real-Time SHAP Waterfall -->
+                    <div class="vigil-card">
+                        <div class="vigil-card-header">
+                            <div class="vigil-card-title">
+                                <span>[ATTRIBUTION]</span> Real-Time SHAP Attribution
+                            </div>
+                            <div class="vigil-card-tag" id="shap-target-class">Target: --</div>
+                        </div>
+                        <div style="font-size:0.72rem; color:var(--zinc-400); font-family:var(--font-mono); margin-bottom:0.85rem;">
+                            Feature value deviations driving model classification for the latest alert:
+                        </div>
+                        <div class="shap-container" id="shap-waterfall">
+                            <div style="color:var(--zinc-500); font-size:0.75rem; font-family:var(--font-mono); text-align:center; padding:1.5rem 0;">
+                                Awaiting network threat detection...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Active Threat Alerts Feed -->
+                <div class="vigil-card" style="display:flex; flex-direction:column;">
+                    <div class="vigil-card-header">
+                        <div class="vigil-card-title">
+                            <span>[ALERT]</span> Active Threat Alerts
+                        </div>
+                        <div class="vigil-card-tag" id="alerts-count-badge">0 active</div>
+                    </div>
+                    <div id="alerts-feed" style="max-height: 520px; overflow-y: auto;">
+                        <!-- Injected live -->
+                    </div>
+                    <div class="scroll-affordance-footer">
+                        <span><span class="scroll-affordance-dot"></span> Incident Buffer</span>
+                        <span class="scroll-affordance-arrow">&darr; Scroll Events</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ========================================== -->
+        <!-- SECTION 3: MITRE ATT&CK & KILL CHAIN       -->
+        <!-- ========================================== -->
+        <section id="section-killchain" class="content-section">
+            <div class="section-eyebrow">&sect; 03 &mdash; Adversary Mapping</div>
+            <h2 class="section-title">MITRE ATT&amp;CK &amp; Cyber Kill Chain Tracker</h2>
+            <p class="section-desc">Multi-stage kill chain progression tracker mapping adversary tactics, transition probabilities, and estimated time-to-impact (TTI).</p>
+
+            <!-- 7-Stage Cyber Kill Chain Visual Banner -->
+            <div class="vigil-card">
+                <div class="vigil-card-header">
+                    <div class="vigil-card-title">
+                        <span>[KILL_CHAIN]</span> 7-Stage Cyber Kill Chain Progression Tracker
+                    </div>
+                    <div class="vigil-card-tag" id="kill-chain-status-badge">Active Adversary Incursion</div>
+                </div>
+                
+                <div class="kill-chain-track" id="kill-chain-nodes">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(5,7,11,0.7); padding:0.95rem 1.4rem; border-radius:12px; border:1px solid var(--border-hairline); margin-top:0.75rem; font-family:var(--font-mono); font-size:0.76rem; flex-wrap:wrap; gap:0.8rem;">
+                    <div>
+                        <span style="color:var(--zinc-500);">Current Active Tactic:</span>
+                        <strong id="kc-current-tactic" style="color:#FFFFFF; margin-left:0.5rem;">Credential Access (T1110)</strong>
+                    </div>
+                    <div>
+                        <span style="color:var(--zinc-500);">Predicted Next Move:</span>
+                        <strong id="kc-next-tactic" style="color:#FFFFFF; margin-left:0.5rem;">Lateral Movement (T1021)</strong>
+                    </div>
+                    <div>
+                        <span style="color:var(--zinc-500);">Transition Probability:</span>
+                        <strong id="kc-transition-prob" style="color:#FFFFFF; margin-left:0.5rem;">84.0%</strong>
+                    </div>
+                    <div>
+                        <span style="color:var(--zinc-500);">Est. Time to Impact (TTI):</span>
+                        <strong id="kc-tti" style="color:#FFFFFF; margin-left:0.5rem;">~45 minutes</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MITRE TTPs Matrix & CTI Feeds -->
+            <div class="cards-grid-2">
+                <!-- ATT&CK TTP Registry Table -->
+                <div class="vigil-card">
+                    <div class="vigil-card-header">
+                        <div class="vigil-card-title">
+                            <span>[MITRE]</span> MITRE ATT&amp;CK Matrix Attribution
+                        </div>
+                        <div class="vigil-card-tag">Enterprise TTP Knowledge Base</div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Technique ID</th>
+                                    <th>Tactic</th>
+                                    <th>Technique Name</th>
+                                    <th>Severity</th>
+                                    <th>Recommended Mitigation</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mitre-ttps-tbody">
+                                <tr>
+                                    <td><strong>T1046</strong></td>
+                                    <td>Reconnaissance</td>
+                                    <td>Network Service Discovery</td>
+                                    <td><span class="badge badge-medium">MEDIUM</span></td>
+                                    <td>Rate limit ICMP/SYN on edge firewalls</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>T1110</strong></td>
+                                    <td>Credential Access</td>
+                                    <td>Brute Force Authentication</td>
+                                    <td><span class="badge badge-high">HIGH</span></td>
+                                    <td>Enforce MFA and 5-attempt IP lockouts</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>T1190</strong></td>
+                                    <td>Initial Access</td>
+                                    <td>Exploit Public Application</td>
+                                    <td><span class="badge badge-critical">CRITICAL</span></td>
+                                    <td>OWASP WAF rules &amp; rapid security patching</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>T1071.004</strong></td>
+                                    <td>Command &amp; Control</td>
+                                    <td>DNS Tunneling &amp; C2</td>
+                                    <td><span class="badge badge-high">HIGH</span></td>
+                                    <td>DNS RPZ sinkhole and entropy inspection</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>T1021</strong></td>
+                                    <td>Lateral Movement</td>
+                                    <td>Remote Services (RDP/SMB)</td>
+                                    <td><span class="badge badge-critical">CRITICAL</span></td>
+                                    <td>East-West zero-trust microsegmentation</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>T1048</strong></td>
+                                    <td>Exfiltration</td>
+                                    <td>Exfiltration Over Alt Protocol</td>
+                                    <td><span class="badge badge-critical">CRITICAL</span></td>
+                                    <td>Egress filtering &amp; multi-megabyte quota drops</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>T1498</strong></td>
+                                    <td>Impact</td>
+                                    <td>Network Denial of Service</td>
+                                    <td><span class="badge badge-critical">CRITICAL</span></td>
+                                    <td>BGP FlowSpec blackholing &amp; scrubbing centers</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- CTI Threat Intelligence Indicator Feed -->
+                <div class="vigil-card">
+                    <div class="vigil-card-header">
+                        <div class="vigil-card-title">
+                            <span>[CTI]</span> CTI Threat Feed Intelligence (AbuseIPDB &amp; OTX)
+                        </div>
+                        <div class="vigil-card-tag">Live Indicators</div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Indicator IP</th>
+                                    <th>Reputation</th>
+                                    <th>Threat Category</th>
+                                    <th>Adversary Actor</th>
+                                    <th>Reports</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>198.51.100.22</code></td>
+                                    <td><strong style="color:#FFFFFF;">0.95</strong></td>
+                                    <td>Data Exfiltration C2</td>
+                                    <td>APT28 (Fancy Bear)</td>
+                                    <td>2,180</td>
+                                </tr>
+                                <tr>
+                                    <td><code>192.168.1.105</code></td>
+                                    <td><strong style="color:#FFFFFF;">0.94</strong></td>
+                                    <td>Botnet Master / C2</td>
+                                    <td>Wizard Spider (UNC1878)</td>
+                                    <td>1,420</td>
+                                </tr>
+                                <tr>
+                                    <td><code>172.16.0.45</code></td>
+                                    <td><strong style="color:#FFFFFF;">0.88</strong></td>
+                                    <td>Password Spray Drone</td>
+                                    <td>Lazarus Group (APT38)</td>
+                                    <td>860</td>
+                                </tr>
+                                <tr>
+                                    <td><code>10.0.0.99</code></td>
+                                    <td><strong style="color:#FFFFFF;">0.76</strong></td>
+                                    <td>Mass Port Scanner</td>
+                                    <td>Mirai Variant Recon</td>
+                                    <td>512</td>
+                                </tr>
+                                <tr>
+                                    <td><code>203.0.113.88</code></td>
+                                    <td><strong style="color:#FFFFFF;">0.65</strong></td>
+                                    <td>Web Exploit Proxy</td>
+                                    <td>FIN7 (Carbanak)</td>
+                                    <td>310</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ========================================== -->
+        <!-- SECTION 4: SPATIAL NETWORK TOPOLOGY GRAPH   -->
+        <!-- ========================================== -->
+        <section id="section-topology" class="content-section">
+            <div class="section-eyebrow">&sect; 04 &mdash; Spatial Threat Graph</div>
+            <h2 class="section-title">Network Topology Graph &amp; Lateral Pivot Map</h2>
+            <p class="section-desc">GraphSAGE spatial graph visualizer mapping lateral movement across security perimeters with one-click SOAR node isolation.</p>
+
+            <!-- Topology KPI Mini-Strip -->
+            <div class="kpi-mini-strip">
+                <div class="kpi-mini">
+                    <div class="kpi-mini-label">Topology Nodes</div>
+                    <div class="kpi-mini-value" id="kpi-topo-nodes">10 Nodes</div>
+                    <div class="kpi-mini-sub">5 Security Zones</div>
+                </div>
+                <div class="kpi-mini primary">
+                    <div class="kpi-mini-label">Compromised Endpoints</div>
+                    <div class="kpi-mini-value" id="kpi-topo-compromised">3 Hosts</div>
+                    <div class="kpi-mini-sub">Infection Pivot Active</div>
+                </div>
+                <div class="kpi-mini">
+                    <div class="kpi-mini-label">At-Risk Crown Jewels</div>
+                    <div class="kpi-mini-value" id="kpi-topo-atrisk">2 Servers</div>
+                    <div class="kpi-mini-sub">Target: Database Tier</div>
+                </div>
+                <div class="kpi-mini">
+                    <div class="kpi-mini-label">Lateral Traversal Vector</div>
+                    <div class="kpi-mini-value" style="font-size:1.15rem;" id="kpi-topo-vector">WS &rarr; AD &rarr; DB</div>
+                    <div class="kpi-mini-sub">GraphSAGE Prob: 89%</div>
+                </div>
+            </div>
+
+            <!-- Topology Visualizer & Host Telemetry Inspector -->
+            <div class="cards-grid-topo">
+                <!-- Topology Graph Visualizer -->
+                <div class="vigil-card">
+                    <div class="vigil-card-header">
+                        <div class="vigil-card-title">
+                            <span>[TOPOLOGY]</span> Network Topology Graph — Real-Time Lateral Pivot Map
+                        </div>
+                        <div style="display:flex; gap:0.5rem; align-items:center;">
+                            <span class="vigil-card-tag">Click node to inspect</span>
+                            <button class="btn-control" onclick="loadTopology()">Reload Graph</button>
+                        </div>
+                    </div>
+                    <canvas id="topology-canvas"></canvas>
+                    <div style="display:flex; gap:1.5rem; justify-content:center; margin-top:0.85rem; font-family:var(--font-mono); font-size:0.7rem; flex-wrap:wrap;">
+                        <span style="display:flex; align-items:center; gap:0.4rem;"><span style="width:10px; height:10px; border-radius:50%; background:#71717A;"></span> Clean Node</span>
+                        <span style="display:flex; align-items:center; gap:0.4rem;"><span style="width:10px; height:10px; border-radius:50%; background:#D4D4D8;"></span> At-Risk Node</span>
+                        <span style="display:flex; align-items:center; gap:0.4rem;"><span style="width:10px; height:10px; border-radius:50%; background:#FFFFFF; box-shadow:0 0 6px #fff;"></span> Compromised / Pivot</span>
+                        <span style="display:flex; align-items:center; gap:0.4rem;"><span style="width:10px; height:10px; border-radius:50%; border:1px dashed #A1A1AA;"></span> Quarantined / Isolated</span>
+                    </div>
+                </div>
+
+                <!-- Selected Node Inspector & SOAR Quarantine Action -->
+                <div class="vigil-card">
+                    <div class="vigil-card-header">
+                        <div class="vigil-card-title">
+                            <span>[ATTRIBUTION]</span> Host Node Telemetry
+                        </div>
+                        <div class="vigil-card-tag" id="topo-selected-zone">DMZ</div>
+                    </div>
+
+                    <div style="display:flex; flex-direction:column; gap:0.85rem; font-family:var(--font-mono); font-size:0.75rem;" id="topo-node-inspector">
+                        <div>
+                            <div style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase;">Host Label:</div>
+                            <strong style="font-size:0.95rem; color:#FFFFFF;" id="insp-label">Finance Workstation 04</strong>
+                        </div>
+                        <div>
+                            <div style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase;">IP Address:</div>
+                            <strong style="color:#FFFFFF;" id="insp-ip">172.16.2.100</strong>
+                        </div>
+                        <div>
+                            <div style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase;">Security Status:</div>
+                            <span class="badge badge-high" id="insp-status">COMPROMISED</span>
+                        </div>
+                        <div>
+                            <div style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase;">Risk Score &amp; Criticality:</div>
+                            <span style="color:#FFFFFF; font-weight:700;" id="insp-risk">0.820</span> (Criticality: <span id="insp-crit">0.45</span>)
+                        </div>
+                        <div>
+                            <div style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase;">Open Listening Ports:</div>
+                            <code id="insp-ports">3389, 445</code>
+                        </div>
+                        <div>
+                            <div style="color:var(--zinc-500); font-size:0.68rem; text-transform:uppercase;">Adversary Details:</div>
+                            <div style="color:var(--zinc-300); font-size:0.72rem; line-height:1.45; background:rgba(5,7,11,0.7); padding:0.65rem; border-radius:8px; border:1px solid var(--border-hairline);" id="insp-details">
+                                Initial phishing ingress point with active TrickBot beacon targeting Domain Controller.
+                            </div>
+                        </div>
+
+                        <div style="margin-top:0.75rem; border-top:1px solid var(--border-hairline); padding-top:1rem;">
+                            <button class="btn-quarantine" style="width:100%; padding:0.65rem; font-size:0.76rem;" id="btn-quarantine-node" onclick="quarantineCurrentNode()">
+                                [ISOLATE] Execute SOAR Quarantine (Sever Node)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Monochromatic Footer -->
+        <footer class="vigil-footer">
+            <div class="footer-brand">VIGIL &bull; Threat Operations</div>
+            <div class="footer-links">
+                <a href="/">Home</a>
+                <a href="/#section-overview">Architecture</a>
+                <a href="/#section-threats">Threats Feed</a>
+                <a href="/docs">API Reference</a>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+                <span class="pulse-dot"></span>
+                <span>System Active &bull; Zero-Day Resilient</span>
+            </div>
+        </footer>
+
+    </main>
+
+    <!-- Client-Side Scripts -->
+    <script>
+        // ==========================================
+        // Global State & Telemetry Metrics
+        // ==========================================
+        let ws = null;
+        let isStreaming = true;
+        let totalFlows = 0;
+        let threatCount = 0;
+        let zeroDayCount = 0;
+        let currentModel = 'xgb';
+        let attackCounts = { Benign: 0, DoS: 0, DDoS: 0, PortScan: 0, "Brute Force": 0, "Web Attack": 0, Bot: 0 };
+        let distChartInstance = null;
+        let forecastChartInstance = null;
+        let startTime = Date.now();
+        let topologyData = null;
+        let selectedNode = null;
+
+        // Three.js 3D Celestial Core State
+        let scene, camera, renderer;
+        let crystalCore, triangleCage, ringGroup;
+        let ring1, ring2, ring3;
+        let ringMat1, ringMat2, ringMat3;
+        let particleField, sideParticleField, wideStarfield, gridFloor;
+        let mouseX = 0, mouseY = 0;
+        let targetCamZ = 12.2;
+        let currentSpeed = 1.0, targetSpeed = 1.0;
+        let targetLight = 3.2;
+        let keyLightRef, fillLightRef;
+        let halfWidth = window.innerWidth / 2;
+        let halfHeight = window.innerHeight / 2;
+
+        // ==========================================
+        // Three.js 3D Background Engine
+        // ==========================================
+        function initMono3D() {
+            const canvas = document.getElementById('hero-3d-canvas');
+            if (!canvas) return;
+
+            let w = window.innerWidth;
+            let h = window.innerHeight;
+            halfWidth = w / 2;
+            halfHeight = h / 2;
+
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
+            camera.position.set(0, 0, targetCamZ);
+
+            renderer = new THREE.WebGLRenderer({
+                canvas: canvas,
+                alpha: true,
+                antialias: true,
+                powerPreference: "high-performance"
+            });
+            renderer.setSize(w, h);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setClearColor(0x000000, 0);
+
+            // Studio Environment Map for Specular Refraction
+            function createStudioEnvMap(renderer) {
+                const pmrem = new THREE.PMREMGenerator(renderer);
+                pmrem.compileEquirectangularShader();
+
+                const c = document.createElement('canvas');
+                c.width = 512;
+                c.height = 256;
+                const ctx = c.getContext('2d');
+
+                ctx.fillStyle = '#06060a';
+                ctx.fillRect(0, 0, 512, 256);
+
+                const topGrad = ctx.createLinearGradient(0, 0, 0, 95);
+                topGrad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+                topGrad.addColorStop(0.35, 'rgba(235, 240, 255, 0.65)');
+                topGrad.addColorStop(1, 'rgba(6, 6, 10, 0)');
+                ctx.fillStyle = topGrad;
+                ctx.fillRect(0, 0, 512, 95);
+
+                const leftG = ctx.createRadialGradient(90, 128, 0, 90, 128, 90);
+                leftG.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+                leftG.addColorStop(0.4, 'rgba(200, 215, 245, 0.35)');
+                leftG.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                ctx.fillStyle = leftG;
+                ctx.beginPath();
+                ctx.arc(90, 128, 90, 0, Math.PI * 2);
+                ctx.fill();
+
+                const rightG = ctx.createRadialGradient(422, 128, 0, 422, 128, 90);
+                rightG.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+                rightG.addColorStop(0.4, 'rgba(230, 215, 250, 0.35)');
+                rightG.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                ctx.fillStyle = rightG;
+                ctx.beginPath();
+                ctx.arc(422, 128, 90, 0, Math.PI * 2);
+                ctx.fill();
+
+                const hGrad = ctx.createLinearGradient(0, 122, 0, 134);
+                hGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                hGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.7)');
+                hGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = hGrad;
+                ctx.fillRect(0, 122, 512, 12);
+
+                const tex = new THREE.CanvasTexture(c);
+                tex.mapping = THREE.EquirectangularReflectionMapping;
+                const target = pmrem.fromEquirectangular(tex);
+                tex.dispose();
+                pmrem.dispose();
+                return target.texture;
+            }
+            scene.environment = createStudioEnvMap(renderer);
+
+            // Lighting
+            const ambient = new THREE.AmbientLight(0xffffff, 0.75);
+            scene.add(ambient);
+
+            const keyLight = new THREE.DirectionalLight(0xffffff, 3.2);
+            keyLight.position.set(7, 9, 8);
+            scene.add(keyLight);
+            keyLightRef = keyLight;
+
+            const fillLight = new THREE.DirectionalLight(0xa1a1aa, 1.6);
+            fillLight.position.set(-7, -5, -5);
+            scene.add(fillLight);
+            fillLightRef = fillLight;
+
+            const coreLight = new THREE.PointLight(0xffffff, 2.5, 20);
+            coreLight.position.set(0, 0, 0);
+            scene.add(coreLight);
+
+            // 1. Crystalline Core
+            const coreGeo = new THREE.IcosahedronGeometry(1.95, 0);
+            const coreMat = new THREE.MeshStandardMaterial({
+                color: 0x141416,
+                roughness: 0.15,
+                metalness: 0.95
+            });
+            crystalCore = new THREE.Mesh(coreGeo, coreMat);
+            scene.add(crystalCore);
+
+            // 2. Grey Triangle Outline Cage
+            const triangleGeo = new THREE.IcosahedronGeometry(2.65, 0);
+            const triangleMat = new THREE.MeshBasicMaterial({
+                color: 0x71717a,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.45
+            });
+            triangleCage = new THREE.Mesh(triangleGeo, triangleMat);
+            scene.add(triangleCage);
+
+            // 3. Precision Square Optical Refractive Glass Rings
+            function createSquareRingGeo(centerRadius, size, segments = 160) {
+                const innerRadius = centerRadius - size / 2;
+                const outerRadius = centerRadius + size / 2;
+                const shape = new THREE.Shape();
+                shape.absarc(0, 0, outerRadius, 0, Math.PI * 2, false);
+                const hole = new THREE.Path();
+                hole.absarc(0, 0, innerRadius, 0, Math.PI * 2, true);
+                shape.holes.push(hole);
+
+                const bevel = Math.min(0.02, size * 0.08);
+                const extrudeSettings = {
+                    depth: size - bevel * 2,
+                    bevelEnabled: true,
+                    bevelThickness: bevel,
+                    bevelSize: bevel,
+                    bevelOffset: -bevel,
+                    bevelSegments: 3,
+                    curveSegments: segments
+                };
+
+                const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+                geo.center();
+                geo.computeVertexNormals();
+                return geo;
+            }
+
+            function createRefractiveGlassMaterial(config = {}) {
+                const mat = new THREE.MeshPhysicalMaterial({
+                    color: config.color || 0xffffff,
+                    transmission: config.transmission !== undefined ? config.transmission : 0.985,
+                    opacity: 1.0,
+                    transparent: true,
+                    roughness: config.roughness !== undefined ? config.roughness : 0.015,
+                    metalness: 0.0,
+                    ior: 1.58,
+                    thickness: config.thickness || 1.2,
+                    clearcoat: 1.0,
+                    clearcoatRoughness: 0.01,
+                    specularIntensity: 2.2,
+                    specularColor: new THREE.Color(0xffffff),
+                    envMapIntensity: 2.5,
+                    side: THREE.DoubleSide
+                });
+
+                mat.userData.liquidUniforms = {
+                    uLiquidTime: { value: 0 },
+                    uLiquidIntensity: { value: 1.0 }
+                };
+
+                mat.onBeforeCompile = (shader) => {
+                    shader.uniforms.uLiquidTime = mat.userData.liquidUniforms.uLiquidTime;
+                    shader.uniforms.uLiquidIntensity = mat.userData.liquidUniforms.uLiquidIntensity;
+
+                    shader.fragmentShader = `
+                        uniform float uLiquidTime;
+                        uniform float uLiquidIntensity;
+                        vec3 getPrismSpectral(float phase) {
+                            vec3 col = 0.5 + 0.5 * cos(6.283185 * (phase + vec3(0.0, 0.33, 0.67)));
+                            return mix(vec3(1.0), col, 0.48);
+                        }
+                    ` + shader.fragmentShader;
+
+                    shader.fragmentShader = shader.fragmentShader.replace(
+                        '#include <dithering_fragment>',
+                        `#include <dithering_fragment>
+                        {
+                            vec3 vDir = normalize(-vViewPosition);
+                            float NdotV = abs(dot(normal, vDir));
+                            float fresnelRim = pow(1.0 - NdotV, 2.4);
+                            float phase = (1.0 - NdotV) * 2.6 + dot(normal, vec3(0.58, 0.52, 0.38)) + uLiquidTime * 0.22;
+                            vec3 spectralGlint = getPrismSpectral(phase);
+                            vec3 lightDir = normalize(vec3(0.65, 0.85, 0.70));
+                            float specularGlint = pow(max(0.0, dot(reflect(-vDir, normal), lightDir)), 22.0) * 1.8;
+                            float totalPrism = (fresnelRim * 2.2 + specularGlint * 1.0) * uLiquidIntensity;
+                            gl_FragColor.rgb += spectralGlint * totalPrism;
+                        }
+                        `
+                    );
+                };
+                return mat;
+            }
+
+            ringGroup = new THREE.Group();
+
+            // Layer 1 (Inner)
+            const ringGeo3 = createSquareRingGeo(3.45, 0.28, 160);
+            ringMat3 = createRefractiveGlassMaterial({ color: 0xffffff, roughness: 0.015, thickness: 1.1 });
+            ring3 = new THREE.Mesh(ringGeo3, ringMat3);
+            ring3.rotation.z = Math.PI / 6;
+            ring3.rotation.x = Math.PI / 4;
+            ringGroup.add(ring3);
+
+            // Layer 2 (Middle)
+            const ringGeo1 = createSquareRingGeo(4.25, 0.36, 160);
+            ringMat1 = createRefractiveGlassMaterial({ color: 0xf4f7ff, roughness: 0.018, thickness: 1.4 });
+            ring1 = new THREE.Mesh(ringGeo1, ringMat1);
+            ring1.rotation.x = Math.PI / 3;
+            ringGroup.add(ring1);
+
+            // Layer 3 (Outer)
+            const ringGeo2 = createSquareRingGeo(5.05, 0.30, 160);
+            ringMat2 = createRefractiveGlassMaterial({ color: 0xeef3fc, roughness: 0.02, thickness: 1.2 });
+            ring2 = new THREE.Mesh(ringGeo2, ringMat2);
+            ring2.rotation.y = Math.PI / 4;
+            ringGroup.add(ring2);
+
+            scene.add(ringGroup);
+
+            // 4. Multi-Tier Particle Fields
+            function createParticleTexture() {
+                const pCanvas = document.createElement('canvas');
+                pCanvas.width = 64;
+                pCanvas.height = 64;
+                const pCtx = pCanvas.getContext('2d');
+                const grad = pCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
+                grad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+                grad.addColorStop(0.2, 'rgba(255, 255, 255, 0.95)');
+                grad.addColorStop(0.5, 'rgba(255, 255, 255, 0.40)');
+                grad.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+                pCtx.fillStyle = grad;
+                pCtx.beginPath();
+                pCtx.arc(32, 32, 32, 0, Math.PI * 2);
+                pCtx.fill();
+                const tex = new THREE.CanvasTexture(pCanvas);
+                tex.needsUpdate = true;
+                return tex;
+            }
+            const particleTexture = createParticleTexture();
+
+            // Layer 3A: Wide Starfield
+            const wideCount = 1100;
+            const widePositions = new Float32Array(wideCount * 3);
+            for (let i = 0; i < wideCount * 3; i += 3) {
+                widePositions[i] = (Math.random() - 0.5) * 80;
+                widePositions[i + 1] = (Math.random() - 0.5) * 44;
+                widePositions[i + 2] = -4 - Math.random() * 32;
+            }
+            const wideGeo = new THREE.BufferGeometry();
+            wideGeo.setAttribute('position', new THREE.BufferAttribute(widePositions, 3));
+            wideStarfield = new THREE.Points(wideGeo, new THREE.PointsMaterial({
+                color: 0xffffff, map: particleTexture, size: 0.075, transparent: true, opacity: 0.75, blending: THREE.AdditiveBlending, depthWrite: false
+            }));
+            scene.add(wideStarfield);
+
+            // Layer 3B: Side Drift Particles
+            const sideCount = 950;
+            const sidePositions = new Float32Array(sideCount * 3);
+            for (let i = 0; i < sideCount * 3; i += 3) {
+                const sideChoice = Math.random();
+                let xVal = sideChoice < 0.45 ? (-6.2 - Math.random() * 26.0) : (sideChoice < 0.90 ? (6.2 + Math.random() * 26.0) : ((Math.random() - 0.5) * 64.0));
+                sidePositions[i] = xVal;
+                sidePositions[i + 1] = (Math.random() - 0.5) * 28.0;
+                sidePositions[i + 2] = 2.5 - Math.random() * 16.0;
+            }
+            const sideGeo = new THREE.BufferGeometry();
+            sideGeo.setAttribute('position', new THREE.BufferAttribute(sidePositions, 3));
+            sideParticleField = new THREE.Points(sideGeo, new THREE.PointsMaterial({
+                color: 0xffffff, map: particleTexture, size: 0.085, transparent: true, opacity: 0.88, blending: THREE.AdditiveBlending, depthWrite: false
+            }));
+            scene.add(sideParticleField);
+
+            // Layer 3C: Orbital Core Particle Cloud
+            const particleCount = 420;
+            const particlePositions = new Float32Array(particleCount * 3);
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                const r = 3.2 + Math.random() * 4.8;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+                particlePositions[i] = r * Math.sin(phi) * Math.cos(theta) * 1.35;
+                particlePositions[i + 1] = r * Math.sin(phi) * Math.sin(theta);
+                particlePositions[i + 2] = r * Math.cos(phi);
+            }
+            const particleGeo = new THREE.BufferGeometry();
+            particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+            particleField = new THREE.Points(particleGeo, new THREE.PointsMaterial({
+                color: 0xffffff, map: particleTexture, size: 0.08, transparent: true, opacity: 0.92, blending: THREE.AdditiveBlending, depthWrite: false
+            }));
+            scene.add(particleField);
+
+            // 5. Perspective Floor Grid
+            gridFloor = new THREE.GridHelper(60, 48, 0x52525b, 0x27272a);
+            gridFloor.position.y = -6.8;
+            if (gridFloor.material) {
+                gridFloor.material.transparent = true;
+                gridFloor.material.opacity = 0.18;
+            }
+            scene.add(gridFloor);
+
+            // Mouse parallax tracking
+            window.addEventListener('mousemove', (e) => {
+                mouseX = (e.clientX - halfWidth) * 0.0016;
+                mouseY = (e.clientY - halfHeight) * 0.0016;
+            });
+
+            // Resize listener
+            window.addEventListener('resize', () => {
+                w = window.innerWidth;
+                h = window.innerHeight;
+                halfWidth = w / 2;
+                halfHeight = h / 2;
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w, h);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            });
+
+            render3DLoop();
+        }
+
+        // ==========================================
+        // Render 3D Animation Loop
+        // ==========================================
+        function render3DLoop() {
+            requestAnimationFrame(render3DLoop);
+
+            camera.position.z += (targetCamZ - camera.position.z) * 0.045;
+            currentSpeed += (targetSpeed - currentSpeed) * 0.05;
+
+            if (crystalCore) {
+                crystalCore.rotation.y += 0.005 * currentSpeed;
+                crystalCore.rotation.x += 0.002 * currentSpeed;
+
+                if (triangleCage) {
+                    triangleCage.rotation.x += 0.003 * currentSpeed;
+                    triangleCage.rotation.y -= 0.0025 * currentSpeed;
+                }
+
+                ringGroup.rotation.y += 0.0055 * currentSpeed;
+                ringGroup.rotation.x += 0.0025 * currentSpeed;
+                if (ring1) ring1.rotation.z += 0.002 * currentSpeed;
+                if (ring2) ring2.rotation.z -= 0.002 * currentSpeed;
+                if (ring3) {
+                    ring3.rotation.z += 0.0032 * currentSpeed;
+                    ring3.rotation.y -= 0.0018 * currentSpeed;
+                }
+
+                const pTime = performance.now() * 0.001;
+                const liquidLightScale = targetLight / 3.2;
+                if (ringMat1 && ringMat1.userData.liquidUniforms) {
+                    ringMat1.userData.liquidUniforms.uLiquidTime.value = pTime * currentSpeed;
+                    ringMat1.userData.liquidUniforms.uLiquidIntensity.value = liquidLightScale;
+                }
+                if (ringMat2 && ringMat2.userData.liquidUniforms) {
+                    ringMat2.userData.liquidUniforms.uLiquidTime.value = pTime * currentSpeed;
+                    ringMat2.userData.liquidUniforms.uLiquidIntensity.value = liquidLightScale;
+                }
+                if (ringMat3 && ringMat3.userData.liquidUniforms) {
+                    ringMat3.userData.liquidUniforms.uLiquidTime.value = pTime * currentSpeed;
+                    ringMat3.userData.liquidUniforms.uLiquidIntensity.value = liquidLightScale;
+                }
+
+                if (particleField) {
+                    particleField.rotation.y += 0.0016 * currentSpeed;
+                    particleField.rotation.x += 0.0006 * currentSpeed;
+                }
+                if (sideParticleField) {
+                    sideParticleField.rotation.y = Math.sin(pTime * 0.12 * currentSpeed) * 0.10;
+                    sideParticleField.rotation.x = Math.cos(pTime * 0.09 * currentSpeed) * 0.05;
+                    sideParticleField.rotation.z += 0.00025 * currentSpeed;
+                    sideParticleField.position.y = Math.sin(pTime * 0.35) * 0.22;
+                    sideParticleField.position.x = Math.cos(pTime * 0.25) * 0.28;
+                }
+                if (wideStarfield) {
+                    wideStarfield.rotation.z += 0.00015 * currentSpeed;
+                    wideStarfield.position.y = Math.sin(pTime * 0.18) * 0.12;
+                }
+
+                camera.position.x += (mouseX * 3.5 - camera.position.x) * 0.05;
+                camera.position.y += (-mouseY * 3.5 - camera.position.y) * 0.05;
+                camera.lookAt(0, 0, 0);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // ==========================================
+        // Scroll-Driven Parallax Camera Zoom (Threats Page Match)
+        // ==========================================
+        function initScrollParallax() {
+            window.addEventListener('scroll', () => {
+                const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+                const frac = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+                // Smoothly zoom in as the user scrolls down the console sections
+                targetCamZ = 12.2 - (frac * 4.7);
+            }, { passive: true });
+        }
+
+        // ==========================================
+        // Smooth Scrolling With Generous Clearance for Navbar
+        // ==========================================
+        function scrollToTarget(secId) {
+            const target = document.getElementById(secId);
+            if (!target) return;
+            if (secId === 'section-hero') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+            const navCapsule = document.querySelector('.dash-nav-capsule');
+            const navOffset = navCapsule ? (navCapsule.offsetHeight + 40) : 95;
+            const elementTop = target.getBoundingClientRect().top + window.pageYOffset - navOffset;
+            window.scrollTo({
+                top: Math.max(0, elementTop),
+                behavior: 'smooth'
+            });
+        }
+
+        // Backward compatibility helper for switchTab calls
+        function switchTab(tabId, btn) {
+            const targetMap = {
+                'tab-forecast': 'section-forecast',
+                'section-forecast': 'section-forecast',
+                'tab-live': 'section-threats-stream',
+                'section-threats-stream': 'section-threats-stream',
+                'tab-mitre': 'section-killchain',
+                'section-killchain': 'section-killchain',
+                'tab-topology': 'section-topology',
+                'section-topology': 'section-topology'
+            };
+            const mappedId = targetMap[tabId] || tabId;
+            scrollToTarget(mappedId);
+        }
+
+        // ==========================================
+        // Nav Slider & Scroll-Spy System
+        // ==========================================
+        function initNavGlassSlider() {
+            const container = document.getElementById('dash-nav-links');
+            const activeBar = document.getElementById('dash-nav-active-bar');
+            if (!container || !activeBar) return;
+
+            const buttons = Array.from(container.querySelectorAll('.dash-tab-btn[data-target]'));
+
+            function moveBarTo(btn, animate = true) {
+                if (!btn) {
+                    activeBar.style.opacity = '0';
+                    return;
+                }
+                const btnRect = btn.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                const inset = 6;
+                const left = btnRect.left - containerRect.left + inset;
+                const width = Math.max(14, btnRect.width - (inset * 2));
+
+                if (!animate) {
+                    const prevTransition = activeBar.style.transition;
+                    activeBar.style.transition = 'none';
+                    activeBar.style.transform = `translate3d(${left}px, 0, 0)`;
+                    activeBar.style.width = `${width}px`;
+                    activeBar.style.opacity = '1';
+                    activeBar.offsetHeight;
+                    activeBar.style.transition = prevTransition;
+                } else {
+                    activeBar.style.transform = `translate3d(${left}px, 0, 0)`;
+                    activeBar.style.width = `${width}px`;
+                    activeBar.style.opacity = '1';
+                }
+            }
+
+            buttons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const secId = btn.getAttribute('data-target');
+                    if (secId) {
+                        scrollToTarget(secId);
+                    }
+                });
+            });
+
+            const sectionIds = ['section-forecast', 'section-threats-stream', 'section-killchain', 'section-topology'];
+            function onScroll() {
+                const scrollY = window.scrollY;
+                let activeId = '';
+                for (let i = 0; i < sectionIds.length; i++) {
+                    const el = document.getElementById(sectionIds[i]);
+                    if (el) {
+                        const top = el.offsetTop - 200;
+                        if (scrollY >= top) {
+                            activeId = sectionIds[i];
+                        }
+                    }
+                }
+                buttons.forEach(b => {
+                    const match = b.getAttribute('data-target') === activeId;
+                    b.classList.toggle('active', match);
+                    if (match) moveBarTo(b, true);
+                });
+                if (!activeId) {
+                    activeBar.style.opacity = '0';
+                }
+            }
+
+            window.addEventListener('scroll', onScroll, { passive: true });
+            window.addEventListener('resize', () => {
+                const active = container.querySelector('.dash-tab-btn.active');
+                if (active) moveBarTo(active, false);
+            });
+
+            setTimeout(() => {
+                onScroll();
+            }, 120);
+        }
+
+        // ==========================================
+        // Chart.js Monochromatic Visualizations
+        // ==========================================
+        function initDistributionChart() {
+            const ctx = document.getElementById('attackDistChart').getContext('2d');
+            distChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(attackCounts),
+                    datasets: [{
+                        data: Object.values(attackCounts),
+                        backgroundColor: ['#27272A', '#EF4444', '#FF6B4A', '#F87171', '#DC2626', '#FF8F70', '#B91C1C'],
+                        borderColor: '#0A0A0E',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'right', labels: { color: '#A1A1AA', font: { family: 'JetBrains Mono', size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        function initForecastChart(points) {
+            const ctx = document.getElementById('forecastTrajectoryChart').getContext('2d');
+            const labels = points.map(p => p.hour);
+            const p50 = points.map(p => p.p50);
+            const upper = points.map(p => p.p95_upper);
+            const lower = points.map(p => p.p05_lower);
+
+            if (forecastChartInstance) {
+                forecastChartInstance.destroy();
+            }
+
+            forecastChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Upper 95% Bound',
+                            data: upper,
+                            borderColor: 'transparent',
+                            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                            fill: '+1',
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Median Threat Forecast (p50)',
+                            data: p50,
+                            borderColor: '#FFFFFF',
+                            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                            fill: 'origin',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#FFFFFF',
+                            pointRadius: 3,
+                            pointHoverRadius: 6,
+                            tension: 0.35
+                        },
+                        {
+                            label: 'Lower 5% Bound',
+                            data: lower,
+                            borderColor: 'transparent',
+                            backgroundColor: 'transparent',
+                            fill: false,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#71717A', font: { family: 'JetBrains Mono', size: 10 } }
+                        },
+                        y: {
+                            min: 0,
+                            max: 1.0,
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: {
+                                color: '#71717A',
+                                font: { family: 'JetBrains Mono', size: 10 },
+                                callback: val => `${(val * 100).toFixed(0)}%`
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#E4E4E7', font: { family: 'JetBrains Mono', size: 10 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => `${ctx.dataset.label}: ${(ctx.parsed.y * 100).toFixed(1)}%`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ==========================================
+        
+        // ==========================================
+        // Remote Backend & Render Endpoint Manager
+        // ==========================================
+        function getBackendBaseUrl() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const qApi = urlParams.get('api') || urlParams.get('backend');
+                if (qApi) {
+                    const cleaned = qApi.replace(/\/+$/, '');
+                    localStorage.setItem('vigil_backend_url', cleaned);
+                    return cleaned;
+                }
+                const saved = localStorage.getItem('vigil_backend_url');
+                if (saved) return saved.replace(/\/+$/, '');
+            } catch (e) {}
+            return '';
+        }
+
+        function getWebSocketUrl() {
+            const apiBase = getBackendBaseUrl();
+            if (apiBase) {
+                const wsProto = apiBase.startsWith('https') ? 'wss:' : 'ws:';
+                const host = apiBase.replace(/^https?:\/\//, '');
+                return `${wsProto}//${host}/ws/stream?rate=2.0&model=${currentModel}`;
+            }
+            const loc = window.location;
+            const protocol = loc.protocol === 'https:' ? 'wss:' : 'ws:';
+            return `${protocol}//${loc.host}/ws/stream?rate=2.0&model=${currentModel}`;
+        }
+
+        async function updateBackendStatusUI() {
+            const dot = document.getElementById('backend-status-dot');
+            const txt = document.getElementById('backend-status-text');
+            if (!dot || !txt) return;
+
+            const apiBase = getBackendBaseUrl();
+            if (apiBase) {
+                try {
+                    const res = await fetch(`${apiBase}/health`, { method: 'GET', mode: 'cors' });
+                    if (res.ok) {
+                        dot.style.background = '#10B981';
+                        txt.textContent = 'RENDER ONLINE';
+                        txt.title = `Connected to: ${apiBase}`;
+                        return;
+                    }
+                } catch (e) {}
+                dot.style.background = '#F59E0B';
+                txt.textContent = 'RENDER CONNECTING';
+                txt.title = `Connecting to: ${apiBase}`;
+            } else {
+                try {
+                    const res = await fetch('/health');
+                    if (res.ok) {
+                        dot.style.background = '#10B981';
+                        txt.textContent = 'LOCAL API';
+                        return;
+                    }
+                } catch (e) {}
+                dot.style.background = '#71717A';
+                txt.textContent = 'DEMO STREAM';
+                txt.title = 'Running standalone simulation. Click to connect Render backend.';
+            }
+        }
+
+        function configureBackendUrl() {
+            const current = getBackendBaseUrl();
+            const input = prompt(
+                "VIGIL Remote Backend Manager\n\nEnter your Render backend URL (e.g. https://vigil-backend.onrender.com) or leave empty for local / demo simulation:\n",
+                current || "https://"
+            );
+            if (input !== null) {
+                const trimmed = input.trim().replace(/\/+$/, '');
+                if (trimmed && trimmed !== 'https://' && trimmed !== 'http://') {
+                    localStorage.setItem('vigil_backend_url', trimmed);
+                } else {
+                    localStorage.removeItem('vigil_backend_url');
+                }
+                updateBackendStatusUI();
+                connectWebSocket();
+                loadForecast();
+                loadTopology();
+                loadInitialAlerts();
+            }
+        }
+
+        // Forecast API Client (With Standalone Vercel Fallback)
+        // ==========================================
+        function renderForecastPayload(data) {
+            if (!data) return;
+            if (data.forecast_horizons) {
+                if (data.forecast_horizons.T_plus_1h) document.getElementById('kpi-f-1h').innerText = `${(data.forecast_horizons.T_plus_1h.probability * 100).toFixed(1)}%`;
+                if (data.forecast_horizons.T_plus_6h) document.getElementById('kpi-f-6h').innerText = `${(data.forecast_horizons.T_plus_6h.probability * 100).toFixed(1)}%`;
+                if (data.forecast_horizons.T_plus_24h) document.getElementById('kpi-f-24h').innerText = `${(data.forecast_horizons.T_plus_24h.probability * 100).toFixed(1)}%`;
+            }
+            if (data.composite_risk_score !== undefined) {
+                document.getElementById('kpi-f-risk').innerText = Number(data.composite_risk_score).toFixed(3);
+            }
+
+            if (data.hourly_projections) {
+                initForecastChart(data.hourly_projections);
+            }
+
+            const tbody = document.getElementById('forecast-attacks-tbody');
+            if (tbody && data.predicted_attacks) {
+                tbody.innerHTML = '';
+                data.predicted_attacks.forEach(a => {
+                    const tr = document.createElement('tr');
+                    const sevClass = `badge-${(a.severity || 'high').toLowerCase()}`;
+                    const ci0 = a.ci ? (a.ci[0] * 100).toFixed(0) : '75';
+                    const ci1 = a.ci ? (a.ci[1] * 100).toFixed(0) : '95';
+                    tr.innerHTML = `
+                        <td><strong>${a.type}</strong></td>
+                        <td>${(a.probability * 100).toFixed(1)}%</td>
+                        <td style="color:var(--zinc-500);">[${ci0}% - ${ci1}%]</td>
+                        <td><span class="badge ${sevClass}">${a.severity}</span></td>
+                        <td style="color:#FFFFFF;">${a.trend || 'Active'}</td>
+                        <td><code>${a.mitre_technique_id || 'T1190'}</code></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            const assetsTbody = document.getElementById('forecast-assets-tbody');
+            if (assetsTbody && data.top_risk_assets) {
+                assetsTbody.innerHTML = '';
+                data.top_risk_assets.forEach(asset => {
+                    const tr = document.createElement('tr');
+                    const statBadge = asset.status === 'AT_RISK' ? 'badge-critical' : (asset.status === 'ACTIVE_TARGET' ? 'badge-high' : 'badge-medium');
+                    const isHighCrit = asset.criticality >= 0.8;
+                    tr.innerHTML = `
+                        <td><strong>${asset.name}</strong></td>
+                        <td><code>${asset.ip}</code></td>
+                        <td>${asset.zone}</td>
+                        <td style="${isHighCrit ? 'color:var(--crimson-crit); font-weight:700;' : ''}">${(asset.criticality * 100).toFixed(0)}%</td>
+                        <td><span class="badge ${statBadge}">${asset.status}</span></td>
+                    `;
+                    assetsTbody.appendChild(tr);
+                });
+            }
+
+            if (data.shap_explanation) {
+                const shapEl = document.getElementById('forecast-shap-explanation');
+                if (shapEl) shapEl.innerText = data.shap_explanation;
+            }
+
+            const soarBox = document.getElementById('soar-playbooks-list');
+            if (soarBox && data.recommended_actions) {
+                soarBox.innerHTML = '';
+                data.recommended_actions.forEach(soar => {
+                    const div = document.createElement('div');
+                    div.style.background = 'rgba(5,7,11,0.7)';
+                    div.style.padding = '0.85rem';
+                    div.style.borderRadius = '10px';
+                    div.style.border = '1px solid var(--border-hairline)';
+                    div.style.display = 'flex';
+                    div.style.justifyContent = 'space-between';
+                    div.style.alignItems = 'center';
+                    div.style.fontFamily = 'var(--font-mono)';
+                    div.style.fontSize = '0.75rem';
+
+                    const isCritPrio = soar.priority === 'CRITICAL';
+                    const isHighPrio = soar.priority === 'HIGH';
+                    const prioColor = isCritPrio ? 'var(--crimson-crit)' : (isHighPrio ? 'var(--vermilion-high)' : 'var(--zinc-400)');
+
+                    div.innerHTML = `
+                        <div style="flex:1; padding-right:1rem;">
+                            <div style="font-weight:600; color:#FFF;">${soar.title} <span style="font-size:0.65rem; color:${prioColor}; font-weight:700; margin-left:0.4rem;">[${soar.priority}]</span></div>
+                            <div style="color:var(--zinc-400); font-size:0.7rem; margin-top:0.2rem;">${soar.action}</div>
+                        </div>
+                        <button class="btn-action" onclick="this.innerText='Triggered &radic;'; this.style.borderColor='#FFFFFF'; this.style.color='#FFFFFF';">
+                            ${soar.automated_capable ? '[STREAM] Auto-Trigger' : '[HUMAN] Approve'}
+                        </button>
+                    `;
+                    soarBox.appendChild(div);
+                });
+            }
+
+            if (data.kill_chain) {
+                renderKillChainBanner(data.kill_chain);
+            }
+        }
+
+        async function loadForecast(segment = 'all') {
+            try {
+                const res = await fetch(`${getBackendBaseUrl()}/forecast/${segment}`);
+                if (!res.ok) throw new Error("Forecast fetch failed: " + res.status);
+                const data = await res.json();
+                renderForecastPayload(data);
+            } catch (err) {
+                console.warn("Forecast API unavailable, rendering standalone demo forecast:", err);
+                const mockForecast = {
+                    forecast_horizons: {
+                        T_plus_1h: { probability: 0.924 },
+                        T_plus_6h: { probability: 0.841 },
+                        T_plus_24h: { probability: 0.615 }
+                    },
+                    composite_risk_score: 0.840,
+                    hourly_projections: [
+                        { hour: '0h', p50: 0.72, p95_upper: 0.82, p05_lower: 0.61 },
+                        { hour: '1h', p50: 0.92, p95_upper: 0.97, p05_lower: 0.82 },
+                        { hour: '2h', p50: 0.88, p95_upper: 0.94, p05_lower: 0.79 },
+                        { hour: '3h', p50: 0.86, p95_upper: 0.92, p05_lower: 0.77 },
+                        { hour: '4h', p50: 0.85, p95_upper: 0.91, p05_lower: 0.76 },
+                        { hour: '5h', p50: 0.84, p95_upper: 0.90, p05_lower: 0.75 },
+                        { hour: '6h', p50: 0.84, p95_upper: 0.89, p05_lower: 0.74 },
+                        { hour: '12h', p50: 0.76, p95_upper: 0.84, p05_lower: 0.65 },
+                        { hour: '18h', p50: 0.68, p95_upper: 0.77, p05_lower: 0.58 },
+                        { hour: '24h', p50: 0.61, p95_upper: 0.72, p05_lower: 0.50 }
+                    ],
+                    predicted_attacks: [
+                        { type: 'DDoS-SynFlood', probability: 0.912, ci: [0.85, 0.96], severity: 'CRITICAL', trend: '+14% / hr', mitre_technique_id: 'T1498' },
+                        { type: 'PortScan-SYN', probability: 0.874, ci: [0.79, 0.93], severity: 'HIGH', trend: '+8% / hr', mitre_technique_id: 'T1046' },
+                        { type: 'SSH-BruteForce', probability: 0.789, ci: [0.71, 0.85], severity: 'HIGH', trend: 'Stable', mitre_technique_id: 'T1110' },
+                        { type: 'Zero-Day Payload', probability: 0.743, ci: [0.62, 0.84], severity: 'CRITICAL', trend: '+22% / hr', mitre_technique_id: 'T1203' }
+                    ],
+                    top_risk_assets: [
+                        { name: 'Core DB Primary', ip: '10.0.1.1', zone: 'Core DB', criticality: 1.0, status: 'AT_RISK' },
+                        { name: 'Kerberos KDC / Auth', ip: '10.0.0.11', zone: 'App Cluster', criticality: 0.88, status: 'ACTIVE_TARGET' },
+                        { name: 'API Ingress Gateway', ip: '10.0.0.10', zone: 'App Cluster', criticality: 0.85, status: 'MONITORED' }
+                    ],
+                    shap_explanation: 'Composite risk surge driven by 78.4% spike in Ingress SYN packet rate and Kerberos credential brute-force anomalies across T+1h to T+6h windows.',
+                    recommended_actions: [
+                        { title: 'Automated Edge Ingress Blackhole', priority: 'CRITICAL', action: 'Blackhole ingress CIDR 198.51.100.0/24 at BGP edge router.', automated_capable: true },
+                        { title: 'Sever C2 Beacon Active Session', priority: 'HIGH', action: 'Revoke Kerberos TGT and isolate node 10.0.0.15.', automated_capable: true },
+                        { title: 'Rate-Limit SSH SYN Probes', priority: 'HIGH', action: 'Deploy eBPF SYN drop filters on port 22.', automated_capable: false }
+                    ],
+                    kill_chain: {
+                        current_stage: 5,
+                        current_tactic: 'Credential Access (T1110)',
+                        chain_stages: [
+                            { stage: 1, tactic: 'Reconnaissance', id: 'T1595' },
+                            { stage: 2, tactic: 'Resource Dev', id: 'T1583' },
+                            { stage: 3, tactic: 'Initial Access', id: 'T1190' },
+                            { stage: 4, tactic: 'Execution', id: 'T1059' },
+                            { stage: 5, tactic: 'Credential Access', id: 'T1110' },
+                            { stage: 6, tactic: 'Lateral Movement', id: 'T1021' },
+                            { stage: 7, tactic: 'Exfiltration', id: 'T1041' }
+                        ],
+                        next_prediction: {
+                            next_tactic: 'Lateral Movement (T1021)',
+                            transition_probability: 0.88,
+                            time_to_impact_minutes: 18
+                        }
+                    }
+                };
+                renderForecastPayload(mockForecast);
+            }
+        }
+
+        function renderKillChainBanner(kc) {
+            const container = document.getElementById('kill-chain-nodes');
+            if (!container || !kc) return;
+            container.innerHTML = '';
+
+            const currentStage = kc.current_stage || 5;
+            kc.chain_stages.forEach(s => {
+                const step = document.createElement('div');
+                step.className = 'kill-chain-step';
+                if (s.stage < currentStage) step.classList.add('past');
+                else if (s.stage === currentStage) step.classList.add('active');
+                else if (s.stage === currentStage + 1) step.classList.add('next');
+
+                step.innerHTML = `
+                    <div class="step-num">STAGE 0${s.stage}</div>
+                    <div class="step-name">${s.tactic}</div>
+                    <div class="step-ttp">${s.id}</div>
+                `;
+                container.appendChild(step);
+            });
+
+            document.getElementById('kc-current-tactic').innerText = kc.current_tactic || 'Credential Access (T1110)';
+            if (kc.next_prediction) {
+                document.getElementById('kc-next-tactic').innerText = kc.next_prediction.next_tactic;
+                const prob = kc.next_prediction.transition_probability;
+                const probEl = document.getElementById('kc-transition-prob');
+                probEl.innerText = `${(prob * 100).toFixed(0)}%`;
+                probEl.style.color = prob >= 0.75 ? 'var(--crimson-crit)' : '#FFFFFF';
+                document.getElementById('kc-tti').innerText = `~${kc.next_prediction.time_to_impact_minutes} min`;
+            }
+        }
+
+        async function runForecastSimulation() {
+            const attackType = document.getElementById('sim-attack-select').value;
+            const segment = document.getElementById('forecast-segment-select').value;
+            try {
+                const res = await fetch(`${getBackendBaseUrl()}/forecast/simulate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        attack_type: attackType,
+                        intensity_multiplier: 2.2,
+                        target_segment: segment
+                    })
+                });
+                await res.json();
+                loadForecast(segment);
+            } catch (e) {
+                console.error("Simulation failed:", e);
+            }
+        }
+
+        // ==========================================
+        // Spatial Network Topology Radar Visualizer
+        // ==========================================
+        function renderTopologyPayload(data) {
+            if (!data) return;
+            topologyData = data;
+            if (topologyData.summary) {
+                const totalEl = document.getElementById('kpi-topo-nodes');
+                if (totalEl) totalEl.innerText = `${topologyData.summary.total_nodes} Nodes`;
+                const compEl = document.getElementById('kpi-topo-compromised');
+                if (compEl) compEl.innerText = `${topologyData.summary.compromised_nodes} Hosts`;
+                const riskEl = document.getElementById('kpi-topo-atrisk');
+                if (riskEl) riskEl.innerText = `${topologyData.summary.at_risk_nodes} Servers`;
+            }
+            if (topologyData.nodes && topologyData.nodes.length > 0) {
+                const target = topologyData.nodes.find(n => n.status === 'compromised' || n.status === 'c2_pivot') || topologyData.nodes[0];
+                selectNode(target);
+            }
+            renderTopologyCanvas();
+        }
+
+        async function loadTopology() {
+            try {
+                const res = await fetch(`${getBackendBaseUrl()}/topology`);
+                if (!res.ok) throw new Error("Topology fetch status: " + res.status);
+                const data = await res.json();
+                renderTopologyPayload(data);
+            } catch (err) {
+                console.warn("Topology API unavailable, rendering standalone demo radar:", err);
+                const mockTopology = {
+                    summary: { total_nodes: 9, compromised_nodes: 1, at_risk_nodes: 2 },
+                    nodes: [
+                        { id: 'gw-01', label: 'Edge Gateway', ip: '10.0.0.1', zone: 'External Internet', status: 'clean', risk_score: 0.12, criticality: 0.95, open_ports: [80, 443], details: 'Cisco Firepower BGP Edge' },
+                        { id: 'waf-01', label: 'WAF Cluster', ip: '10.0.0.2', zone: 'Perimeter', status: 'at_risk', risk_score: 0.68, criticality: 0.90, open_ports: [443, 8443], details: 'Envoy Ingress Proxy' },
+                        { id: 'app-01', label: 'API Gateway', ip: '10.0.0.10', zone: 'DMZ', status: 'clean', risk_score: 0.18, criticality: 0.85, open_ports: [8000, 8080], details: 'FastAPI Microservices' },
+                        { id: 'app-02', label: 'Auth Service', ip: '10.0.0.11', zone: 'Workstations', status: 'at_risk', risk_score: 0.74, criticality: 0.88, open_ports: [88, 389], details: 'Kerberos & LDAP KDC' },
+                        { id: 'srv-03', label: 'Compromised Host', ip: '10.0.0.15', zone: 'Workstations', status: 'compromised', risk_score: 0.96, criticality: 0.82, open_ports: [22, 445, 8080], details: 'Active C2 Pivot & Reverse Shell' },
+                        { id: 'db-01', label: 'Primary DB', ip: '10.0.1.1', zone: 'Internal Core', status: 'clean', risk_score: 0.22, criticality: 1.0, open_ports: [5432], details: 'PostgreSQL Enterprise Cluster' },
+                        { id: 'db-replica', label: 'Replica DB', ip: '10.0.1.2', zone: 'Database Tier', status: 'clean', risk_score: 0.15, criticality: 0.80, open_ports: [5432], details: 'Streaming Replica Node' },
+                        { id: 'cache-01', label: 'Redis Cache', ip: '10.0.1.5', zone: 'Database Tier', status: 'clean', risk_score: 0.10, criticality: 0.65, open_ports: [6379], details: 'In-Memory Sentinel' },
+                        { id: 'pci-vault', label: 'PCI Vault', ip: '10.0.2.1', zone: 'PCI Secured Zone', status: 'clean', risk_score: 0.05, criticality: 0.98, open_ports: [443], details: 'Hardware Security Module (HSM)' }
+                    ],
+                    edges: [
+                        { source: 'gw-01', target: 'waf-01', threat_detected: false },
+                        { source: 'waf-01', target: 'app-01', threat_detected: false },
+                        { source: 'waf-01', target: 'app-02', threat_detected: true },
+                        { source: 'app-01', target: 'srv-03', threat_detected: true },
+                        { source: 'app-02', target: 'db-01', threat_detected: false },
+                        { source: 'app-01', target: 'cache-01', threat_detected: false },
+                        { source: 'db-01', target: 'db-replica', threat_detected: false },
+                        { source: 'db-01', target: 'pci-vault', threat_detected: false }
+                    ]
+                };
+                renderTopologyPayload(mockTopology);
+            }
+        }
+
+        function selectNode(node) {
+            selectedNode = node;
+            document.getElementById('insp-label').innerText = node.label;
+            document.getElementById('insp-ip').innerText = node.ip;
+            document.getElementById('insp-status').innerText = node.status.toUpperCase();
+            document.getElementById('insp-status').className = `badge ${node.status === 'clean' ? 'badge-benign' : (node.status === 'at_risk' ? 'badge-high' : (node.status === 'isolated' ? 'badge-isolated' : 'badge-critical'))}`;
+            const riskEl = document.getElementById('insp-risk');
+            riskEl.innerText = node.risk_score.toFixed(3);
+            riskEl.style.color = node.risk_score > 0.7 ? 'var(--crimson-crit)' : '#FFFFFF';
+            const critEl = document.getElementById('insp-crit');
+            critEl.innerText = (node.criticality * 100).toFixed(0) + '%';
+            critEl.style.color = node.criticality >= 0.8 ? 'var(--crimson-crit)' : 'var(--zinc-300)';
+            document.getElementById('insp-ports').innerText = node.open_ports.join(', ');
+            document.getElementById('insp-details').innerText = node.details;
+            document.getElementById('topo-selected-zone').innerText = node.zone;
+        }
+
+        async function quarantineCurrentNode() {
+            if (!selectedNode) return;
+            try {
+                const res = await fetch(`${getBackendBaseUrl()}/topology/node/${selectedNode.id}/isolate`, { method: 'POST' });
+                if (!res.ok) throw new Error("Isolate returned status: " + res.status);
+                const data = await res.json();
+                alert(data.message);
+                loadTopology();
+            } catch (e) {
+                console.warn("Backend quarantine unavailable, executing client isolation:", e);
+                selectedNode.status = 'isolated';
+                selectedNode.risk_score = 0.0;
+                selectNode(selectedNode);
+                renderTopologyCanvas();
+                alert(`SOAR ENFORCEMENT: Node ${selectedNode.label} (${selectedNode.ip}) successfully quarantined via automated eBPF isolation.`);
+            }
+        }
+
+        function renderTopologyCanvas() {
+            const canvas = document.getElementById('topology-canvas');
+            if (!canvas || !topologyData) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width = canvas.parentElement.clientWidth;
+            const h = canvas.height = 480;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Subtle Cyber Radar Grid & Crosshairs
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.lineWidth = 1;
+            for (let x = 40; x < w; x += 60) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, h);
+                ctx.stroke();
+            }
+            for (let y = 40; y < h; y += 60) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(w, y);
+                ctx.stroke();
+            }
+
+            const zoneX = {
+                "External Internet": 60,
+                "Perimeter": w * 0.22,
+                "DMZ": w * 0.38,
+                "Workstations": w * 0.55,
+                "Internal Core": w * 0.72,
+                "Database Tier": w * 0.88,
+                "PCI Secured Zone": w * 0.88
+            };
+
+            const nodePositions = {};
+            const nodesByZone = {};
+
+            topologyData.nodes.forEach(n => {
+                if (!nodesByZone[n.zone]) nodesByZone[n.zone] = [];
+                nodesByZone[n.zone].push(n);
+            });
+
+            Object.keys(nodesByZone).forEach(z => {
+                const list = nodesByZone[z];
+                const baseX = zoneX[z] || w * 0.5;
+                const stepY = h / (list.length + 1);
+                list.forEach((n, idx) => {
+                    nodePositions[n.id] = {
+                        x: baseX,
+                        y: stepY * (idx + 1),
+                        node: n
+                    };
+                });
+            });
+
+            // Draw Edges
+            topologyData.edges.forEach(e => {
+                const src = nodePositions[e.source];
+                const dst = nodePositions[e.target];
+                if (!src || !dst) return;
+
+                ctx.beginPath();
+                ctx.moveTo(src.x, src.y);
+                ctx.lineTo(dst.x, dst.y);
+
+                if (e.threat_detected) {
+                    ctx.strokeStyle = 'rgba(239, 68, 68, 0.85)';
+                    ctx.lineWidth = 2.5;
+                    ctx.setLineDash([6, 3]);
+                    ctx.shadowColor = 'rgba(239, 68, 68, 0.6)';
+                    ctx.shadowBlur = 6;
+                } else {
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([]);
+                    ctx.shadowBlur = 0;
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.shadowBlur = 0;
+            });
+
+            // Draw Nodes
+            Object.values(nodePositions).forEach(pos => {
+                const n = pos.node;
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, 14, 0, Math.PI * 2);
+
+                let fillColor = '#3F3F46';
+                if (n.status === 'at_risk') fillColor = '#FF6B4A';
+                else if (n.status === 'compromised' || n.status === 'c2_pivot') fillColor = '#EF4444';
+                else if (n.status === 'isolated') fillColor = '#18181B';
+
+                ctx.fillStyle = fillColor;
+                ctx.fill();
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = '#05070B';
+                ctx.stroke();
+
+                // Glowing outer crimson ring for compromised / C2 pivot nodes
+                if (n.status === 'compromised' || n.status === 'c2_pivot') {
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, 18, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(239, 68, 68, 0.6)';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                }
+
+                if (selectedNode && selectedNode.id === n.id) {
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, 22, 0, Math.PI * 2);
+                    ctx.strokeStyle = (n.status === 'compromised' || n.status === 'c2_pivot') ? '#EF4444' : '#FFFFFF';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+
+                ctx.font = '10px JetBrains Mono';
+                ctx.fillStyle = '#E4E4E7';
+                ctx.textAlign = 'center';
+                ctx.fillText(n.label, pos.x, pos.y + 26);
+            });
+
+            canvas.onclick = (evt) => {
+                const rect = canvas.getBoundingClientRect();
+                const clickX = evt.clientX - rect.left;
+                const clickY = evt.clientY - rect.top;
+
+                Object.values(nodePositions).forEach(pos => {
+                    const dist = Math.hypot(clickX - pos.x, clickY - pos.y);
+                    if (dist <= 22) {
+                        selectNode(pos.node);
+                        renderTopologyCanvas();
+                    }
+                });
+            };
+        }
+
+        // ==========================================
+        // WebSocket Real-Time Packet Stream & Standalone Simulator
+        // ==========================================
+        let wsRetryCount = 0;
+        let demoInterval = null;
+
+        function startDemoTelemetryStream() {
+            if (demoInterval) return;
+            const statusEl = document.getElementById('conn-status');
+            const badgeEl = document.getElementById('conn-status-badge');
+            if (statusEl) statusEl.innerText = 'SIMULATED WIRE-SPEED STREAM';
+            if (badgeEl) badgeEl.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+
+            const attackTypes = ['Benign', 'Benign', 'Benign', 'Benign', 'PortScan', 'DDoS', 'Zero-Day'];
+            const ips = ['198.51.100.44', '192.0.2.14', '203.0.113.89', '198.51.100.12', '10.0.0.15'];
+
+            demoInterval = setInterval(() => {
+                if (!isStreaming) return;
+                const randType = attackTypes[Math.floor(Math.random() * attackTypes.length)];
+                const isThreat = randType !== 'Benign';
+                const isZd = randType === 'Zero-Day';
+                const flow = {
+                    src_ip: ips[Math.floor(Math.random() * ips.length)],
+                    dst_ip: '10.0.0.' + (Math.floor(Math.random() * 20) + 1),
+                    dst_port: isThreat ? (randType === 'DDoS' ? 80 : (randType === 'PortScan' ? 445 : 8080)) : 443,
+                    protocol: 'TCP',
+                    predicted_class: randType,
+                    confidence: isThreat ? (0.97 + Math.random() * 0.025) : 0.994,
+                    flow_duration_ms: (1.2 + Math.random() * 0.8).toFixed(1),
+                    severity: isZd ? 'CRITICAL' : (randType === 'DDoS' ? 'CRITICAL' : (isThreat ? 'HIGH' : 'LOW')),
+                    is_zero_day_anomaly: isZd,
+                    model_used: isZd ? 'FlowAutoencoder' : (randType === 'DDoS' ? 'FlowLSTM' : 'XGBoost'),
+                    shap_waterfall: [
+                        { feature: 'Bwd Packet Length Mean', value: isThreat ? 840.5 : 124.0, shap_value: isThreat ? 0.412 : -0.210 },
+                        { feature: 'Flow Packets/s', value: isThreat ? 1850.0 : 42.0, shap_value: isThreat ? 0.380 : -0.180 },
+                        { feature: 'SYN Flag Count', value: randType === 'DDoS' ? 1.0 : 0.0, shap_value: randType === 'DDoS' ? 0.295 : -0.150 },
+                        { feature: 'Init Win Bytes Fwd', value: 29200, shap_value: 0.120 }
+                    ],
+                    top_contributions: [{ feature: 'Bwd Packet Length Mean', shap_value: isThreat ? 0.412 : -0.210 }]
+                };
+                handleNewFlow(flow);
+            }, 1400);
+        }
+
+        function connectWebSocket() {
+            const loc = window.location;
+            const protocol = loc.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = getWebSocketUrl();
+            
+            try {
+                if (ws) {
+                    ws.onclose = null;
+                    ws.onerror = null;
+                    ws.close();
+                }
+            } catch (e) {}
+
+            try {
+                ws = new WebSocket(wsUrl);
+            } catch (e) {
+                console.warn("WebSocket creation failed, falling back to simulated stream:", e);
+                startDemoTelemetryStream();
+                return;
+            }
+
+            ws.onopen = () => {
+                wsRetryCount = 0;
+                if (demoInterval) {
+                    clearInterval(demoInterval);
+                    demoInterval = null;
+                }
+                const statusEl = document.getElementById('conn-status');
+                const badgeEl = document.getElementById('conn-status-badge');
+                if (statusEl) statusEl.innerText = 'LIVE TELEMETRY STREAM';
+                if (badgeEl) badgeEl.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+            };
+
+            ws.onmessage = (event) => {
+                if (!isStreaming) return;
+                try {
+                    const flow = JSON.parse(event.data);
+                    handleNewFlow(flow);
+                } catch (e) {
+                    console.error("Error processing stream flow:", e);
+                }
+            };
+
+            ws.onerror = (err) => console.error("WS error:", err);
+            ws.onclose = () => {
+                wsRetryCount++;
+                if (wsRetryCount >= 2) {
+                    startDemoTelemetryStream();
+                } else {
+                    const statusEl = document.getElementById('conn-status');
+                    const badgeEl = document.getElementById('conn-status-badge');
+                    if (statusEl) statusEl.innerText = 'STREAM RECONNECTING...';
+                    if (badgeEl) badgeEl.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                }
+                setTimeout(connectWebSocket, 4000);
+            };
+        }
+
+        function handleNewFlow(flow) {
+            totalFlows++;
+            const totalEl = document.getElementById('kpi-total-flows');
+            if (totalEl) totalEl.innerText = totalFlows.toLocaleString();
+
+            const isThreat = flow.predicted_class && flow.predicted_class !== 'Benign';
+            if (isThreat) {
+                threatCount++;
+                const threatEl = document.getElementById('kpi-threat-count');
+                if (threatEl) {
+                    threatEl.innerText = threatCount.toLocaleString();
+                    threatEl.closest('.kpi-mini')?.classList.add('warning-high');
+                }
+            }
+
+            const isZd = Boolean(
+                flow.is_zero_day_anomaly || 
+                (flow.zero_day_detection && (flow.zero_day_detection.is_zero_day || flow.zero_day_detection.is_zero_day_anomaly))
+            );
+            if (isZd) {
+                zeroDayCount++;
+                const zdEl = document.getElementById('kpi-zeroday-count');
+                if (zdEl) {
+                    zdEl.innerText = zeroDayCount.toLocaleString();
+                    zdEl.closest('.kpi-mini')?.classList.add('critical');
+                }
+            }
+
+            const ratio = ((threatCount / Math.max(1, totalFlows)) * 100).toFixed(1);
+            const ratioEl = document.getElementById('kpi-threat-ratio');
+            if (ratioEl) ratioEl.innerText = `${ratio}% anomalous`;
+
+            const latencyEl = document.getElementById('kpi-latency');
+            if (latencyEl) {
+                const lat = flow.flow_duration_ms > 0 ? flow.flow_duration_ms : (1.4 + Math.random() * 0.8).toFixed(1);
+                latencyEl.innerText = `${lat} ms`;
+            }
+
+            const predClass = flow.predicted_class || 'Benign';
+            if (attackCounts[predClass] !== undefined) {
+                attackCounts[predClass]++;
+            } else {
+                attackCounts[predClass] = 1;
+            }
+            if (distChartInstance && totalFlows % 2 === 0) {
+                distChartInstance.data.labels = Object.keys(attackCounts);
+                distChartInstance.data.datasets[0].data = Object.values(attackCounts);
+                distChartInstance.update('none');
+            }
+
+            const tbody = document.getElementById('stream-tbody');
+            if (tbody) {
+                const row = document.createElement('tr');
+                if (isThreat) row.classList.add('anomaly');
+
+                const isCrit = (flow.severity || '').toLowerCase() === 'critical';
+                const isHigh = (flow.severity || '').toLowerCase() === 'high';
+                const predColor = isCrit ? 'var(--crimson-crit)' : (isHigh ? 'var(--vermilion-high)' : '#FFFFFF');
+                const predWeight = (isCrit || isHigh) ? '700' : '600';
+
+                const sevClass = `badge-${(flow.severity || 'low').toLowerCase()}`;
+                const timeStr = new Date().toTimeString().split(' ')[0];
+                const topDriver = (flow.top_contributions && flow.top_contributions[0]) 
+                    ? (flow.top_contributions[0].feature || flow.top_contributions[0].feature_name || '-')
+                    : '-';
+
+                row.innerHTML = `
+                    <td style="color:var(--zinc-500);">${timeStr}</td>
+                    <td>${flow.src_ip || '192.168.1.100'}</td>
+                    <td>${flow.dst_ip || '10.0.0.1'}:${flow.dst_port || 80}</td>
+                    <td><span>${flow.protocol || 'TCP'}</span></td>
+                    <td><strong style="color:${predColor}; font-weight:${predWeight};">${predClass}</strong></td>
+                    <td>${((flow.confidence || 0.95) * 100).toFixed(1)}%</td>
+                    <td><span class="badge ${sevClass}">${flow.severity || 'Low'}</span></td>
+                    <td>${isZd ? '<span class="badge badge-zeroday">ZERO-DAY</span>' : '<span style="color:var(--zinc-500);">-</span>'}</td>
+                    <td style="color:#FFFFFF;">${topDriver}</td>
+                `;
+
+                tbody.insertBefore(row, tbody.firstChild);
+                if (tbody.children.length > 30) tbody.removeChild(tbody.lastChild);
+            }
+
+            if (isThreat || isZd) {
+                if (flow.top_contributions && flow.top_contributions.length > 0) {
+                    renderSHAPWaterfall(flow);
+                }
+                appendAlert(flow);
+            }
+        }
+
+        function renderSHAPWaterfall(flow) {
+            const targetEl = document.getElementById('shap-target-class');
+            if (targetEl) {
+                targetEl.innerText = `Target: ${flow.predicted_class || 'Threat'} (${((flow.confidence || 0) * 100).toFixed(1)}%)`;
+            }
+            const container = document.getElementById('shap-waterfall');
+            if (!container || !flow.top_contributions) return;
+            container.innerHTML = '';
+
+            const contribs = flow.top_contributions.slice(0, 6);
+            const getScore = c => (c.shap_value !== undefined ? c.shap_value : (c.shap_score !== undefined ? c.shap_score : 0));
+            const maxVal = Math.max(...contribs.map(c => Math.abs(getScore(c))), 0.001);
+
+            contribs.forEach(c => {
+                const score = getScore(c);
+                const feat = c.feature || c.feature_name || 'Feature';
+                const isPos = score >= 0;
+                const widthPct = Math.min(100, Math.max(6, (Math.abs(score) / maxVal) * 100));
+                
+                const div = document.createElement('div');
+                div.className = 'shap-row';
+                div.innerHTML = `
+                    <div class="shap-label" title="${feat}">${feat}</div>
+                    <div class="shap-track">
+                        <div class="${isPos ? 'shap-bar-pos' : 'shap-bar-neg'}" style="width: ${widthPct}%;"></div>
+                    </div>
+                    <div style="text-align:right; color:${isPos ? 'var(--crimson-crit)' : '#A1A1AA'}; font-weight:${isPos ? '700' : '400'}; font-family:var(--font-mono);">
+                        ${isPos ? '+' : ''}${score.toFixed(3)}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function appendAlert(flow) {
+            const feed = document.getElementById('alerts-feed');
+            if (!feed) return;
+            const alert = document.createElement('div');
+            const isCrit = (flow.severity || '').toLowerCase() === 'critical';
+            const isHigh = (flow.severity || '').toLowerCase() === 'high';
+            alert.className = `alert-item live-pulse ${isCrit ? 'alert-critical' : (isHigh ? 'alert-high' : '')}`;
+            const sevClass = `badge-${(flow.severity || 'high').toLowerCase()}`;
+            const topFeat = (flow.top_contributions && flow.top_contributions[0]) 
+                ? (flow.top_contributions[0].feature || flow.top_contributions[0].feature_name || 'Anomaly')
+                : 'Anomaly';
+
+            alert.innerHTML = `
+                <div class="alert-header">
+                    <span class="badge ${sevClass}">${flow.severity || 'HIGH'}</span>
+                    <span class="alert-time">${new Date().toLocaleTimeString()}</span>
+                </div>
+                <div>
+                    <strong>${flow.predicted_class}</strong> from <code>${flow.src_ip}</code> &rarr; <code>${flow.dst_ip}:${flow.dst_port}</code>
+                </div>
+                <div style="font-size:0.68rem; color:var(--zinc-400); margin-top:0.25rem;">
+                    Attribution: <code>${topFeat}</code> &bull; Model: ${flow.model_used || 'Ensemble'}
+                </div>
+                <div class="alert-actions">
+                    <button class="btn-action" onclick="this.parentElement.parentElement.remove(); updateAlertCount();">Acknowledge</button>
+                </div>
+            `;
+
+            feed.insertBefore(alert, feed.firstChild);
+            if (feed.children.length > 25) feed.removeChild(feed.lastChild);
+            updateAlertCount();
+        }
+
+        function updateAlertCount() {
+            const feed = document.getElementById('alerts-feed');
+            const badge = document.getElementById('alerts-count-badge');
+            if (feed && badge) {
+                const count = feed.children.length;
+                badge.innerText = `${count} active`;
+                if (count > 0) {
+                    badge.classList.add('has-alerts');
+                } else {
+                    badge.classList.remove('has-alerts');
+                }
+            }
+        }
+
+        function renderAlertsBuffer(items) {
+            const feed = document.getElementById('alerts-feed');
+            if (!feed || !items || items.length === 0) return;
+            feed.innerHTML = '';
+            items.forEach(a => {
+                const sevClass = `badge-${(a.severity || 'high').toLowerCase()}`;
+                const isCrit = (a.severity || '').toLowerCase() === 'critical';
+                const isHigh = (a.severity || '').toLowerCase() === 'high';
+                const div = document.createElement('div');
+                div.className = `alert-item ${isCrit ? 'alert-critical' : (isHigh ? 'alert-high' : '')}`;
+                div.innerHTML = `
+                    <div class="alert-header">
+                        <span class="badge ${sevClass}">${a.severity}</span>
+                        <span class="alert-time">${a.timestamp ? new Date(a.timestamp).toLocaleTimeString() : 'Recent'}</span>
+                    </div>
+                    <div>
+                        <strong>${a.attack_class || 'Threat'}</strong> from <code>${a.src_ip}</code> &rarr; <code>${a.dst_ip}:${a.dst_port || 80}</code>
+                    </div>
+                    <div style="font-size:0.68rem; color:var(--zinc-400); margin-top:0.25rem;">
+                        Attribution: <code>${a.top_contributing_feature || 'Anomaly'}</code> &bull; Model: ${a.model_used || 'Ensemble'}
+                    </div>
+                    <div class="alert-actions">
+                        <button class="btn-action" onclick="this.parentElement.parentElement.remove(); updateAlertCount();">Acknowledge</button>
+                    </div>
+                `;
+                feed.appendChild(div);
+            });
+            updateAlertCount();
+        }
+
+        async function loadInitialAlerts() {
+            try {
+                const res = await fetch(`${getBackendBaseUrl()}/alerts?page_size=6&page=1`);
+                if (!res.ok) throw new Error('Alerts fetch failed');
+                const data = await res.json();
+                renderAlertsBuffer(data.items || []);
+            } catch (e) {
+                console.debug('Initial alerts falling back to demo feed:', e);
+                const mockItems = [
+                    { severity: 'CRITICAL', attack_class: 'DDoS-SynFlood', src_ip: '198.51.100.44', dst_ip: '10.0.0.1', dst_port: 80, timestamp: new Date().toISOString(), model_used: 'FlowLSTM', top_contributing_feature: 'Bwd Packet Length Mean' },
+                    { severity: 'CRITICAL', attack_class: 'Zero-Day Payload', src_ip: '203.0.113.89', dst_ip: '10.0.0.15', dst_port: 8080, timestamp: new Date(Date.now() - 45000).toISOString(), model_used: 'FlowAutoencoder', top_contributing_feature: 'Reconstruction Loss (tau=1.62)' },
+                    { severity: 'HIGH', attack_class: 'SSH-BruteForce', src_ip: '192.0.2.14', dst_ip: '10.0.0.5', dst_port: 22, timestamp: new Date(Date.now() - 120000).toISOString(), model_used: 'XGBoost', top_contributing_feature: 'Flow Packets/s' },
+                    { severity: 'HIGH', attack_class: 'PortScan-SYN', src_ip: '198.51.100.12', dst_ip: '10.0.0.0/24', dst_port: 445, timestamp: new Date(Date.now() - 240000).toISOString(), model_used: 'Random Forest', top_contributing_feature: 'SYN Flag Count' },
+                    { severity: 'MEDIUM', attack_class: 'Web-SQLi-Attempt', src_ip: '192.0.2.78', dst_ip: '10.0.0.2', dst_port: 443, timestamp: new Date(Date.now() - 480000).toISOString(), model_used: 'XGBoost', top_contributing_feature: 'Init Win Bytes Fwd' }
+                ];
+                renderAlertsBuffer(mockItems);
+            }
+        }
+
+        async function injectAttack(attackType) {
+            try {
+                if (crystalCore && crystalCore.material) {
+                    crystalCore.material.color.setHex(0xef4444);
+                    setTimeout(() => {
+                        if (crystalCore && crystalCore.material) crystalCore.material.color.setHex(0x141416);
+                    }, 1800);
+                }
+                const res = await fetch(`${getBackendBaseUrl()}/stream/inject?attack=${encodeURIComponent(attackType)}&count=5`, { method: 'POST' });
+                if (!res.ok) throw new Error("Inject API returned status: " + res.status);
+            } catch (err) {
+                console.warn("Backend inject unavailable, simulating client-side attack burst:", err);
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        const isZd = attackType.toLowerCase().includes('zero');
+                        handleNewFlow({
+                            src_ip: '198.51.100.' + (10 + i),
+                            dst_ip: '10.0.0.15',
+                            dst_port: attackType.includes('Port') ? 445 + i : 80,
+                            protocol: 'TCP',
+                            predicted_class: attackType,
+                            confidence: 0.992,
+                            flow_duration_ms: 1.2,
+                            severity: 'CRITICAL',
+                            is_zero_day_anomaly: isZd,
+                            model_used: isZd ? 'FlowAutoencoder' : (attackType === 'DDoS' ? 'FlowLSTM' : 'XGBoost'),
+                            shap_waterfall: [
+                                { feature: 'Bwd Packet Length Mean', value: 920.0, shap_value: 0.465 },
+                                { feature: 'Flow Packets/s', value: 3400.0, shap_value: 0.395 },
+                                { feature: 'SYN Flag Count', value: 1.0, shap_value: 0.320 },
+                                { feature: 'Init Win Bytes Fwd', value: 29200, shap_value: 0.110 }
+                            ],
+                            top_contributions: [{ feature: 'Bwd Packet Length Mean', shap_value: 0.465 }]
+                        });
+                    }, i * 180);
+                }
+            }
+        }
+
+        function changeModel(val) {
+            currentModel = val;
+            const modelNames = { xgb: 'XGBoost', rf: 'Random Forest', lstm: 'FlowLSTM' };
+            const el = document.getElementById('active-model-name');
+            if (el) el.innerText = modelNames[val] || 'XGBoost';
+            connectWebSocket();
+        }
+
+        function toggleStream() {
+            isStreaming = !isStreaming;
+            document.getElementById('btn-toggle-stream').innerText = isStreaming ? 'Pause Stream' : 'Resume Stream';
+        }
+
+
+        // ==========================================
+        // Bootstrap on Load
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', () => {
+            initMono3D();
+            initScrollParallax();
+            initNavGlassSlider();
+            initDistributionChart();
+            connectWebSocket();
+            loadForecast();
+            loadTopology();
+            loadInitialAlerts();
+
+            // Handle anchor navigation if present in URL
+            const hash = window.location.hash.replace('#', '');
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab') || hash;
+            
+            if (tabParam === 'live' || tabParam === 'tab-live' || window.location.pathname.includes('/console')) {
+                setTimeout(() => scrollToTarget('section-threats-stream'), 300);
+            } else if (tabParam === 'forecast' || tabParam === 'tab-forecast') {
+                setTimeout(() => scrollToTarget('section-forecast'), 300);
+            } else if (tabParam) {
+                const targetId = document.getElementById(tabParam) ? tabParam : `section-${tabParam.replace('tab-', '')}`;
+                if (document.getElementById(targetId)) {
+                    setTimeout(() => scrollToTarget(targetId), 300);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

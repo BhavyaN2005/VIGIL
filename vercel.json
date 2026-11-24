@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/", "destination": "/Vigil/Vigil/frontend/index.html" },
+    { "source": "/index.html", "destination": "/Vigil/Vigil/frontend/index.html" },
+    { "source": "/console", "destination": "/Vigil/Vigil/frontend/console.html" },
+    { "source": "/dashboard", "destination": "/Vigil/Vigil/frontend/console.html" },
+    { "source": "/js/(.*)", "destination": "/Vigil/Vigil/frontend/js/$1" },
+    { "source": "/static/(.*)", "destination": "/Vigil/Vigil/frontend/$1" }
+  ]
+}
